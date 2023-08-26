@@ -3,10 +3,32 @@ const { Telegraf, Markup, session, Scenes } = require("telegraf");
 const crypto = require("crypto");
 const fs = require("fs");
 const { isUtf8 } = require("buffer");
-const mongo = require("mongoose").MongoClient;
 const path = require("path");
-const productionAtmosToken = process.env.ProductionAtmosToken;
+const db = require("./db");
+const User = require("./User");
 require("dotenv/config");
+const productionAtmosToken = process.env.ProductionAtmosToken;
+
+//db connection
+db();
+// let result = User.create({
+//   first_name: "Muhammadjon",
+//   username: "qwertyuio",
+//   phone: "+999999999",
+// });
+// console.log(result);
+async function usersFind() {
+  const users = await User.findOne({
+    _id: "64ea2941466cfa7e8f25910b",
+    is_deleted: false,
+  }).select("-password -is_deleted");
+  console.log(users);
+  return users;
+}
+usersFind();
+// let users = User.findById("64ea2941466cfa7e8f25910b");
+// console.log(users, "shu");
+//db connection_
 
 // variables
 // console.log(process.env.BOT_TOKEN);
@@ -40,7 +62,20 @@ const telKeyboardUz = Markup.keyboard([
   .selective();
 
 // variables_end
+bot.start((ctx) => {
+  const keyboard = Markup.keyboard([Markup.button.callback("Kirish", isUtf8)])
+    .oneTime()
+    .resize()
+    .selective();
+  ctx.reply(
+    "Botga xush kelibsiz! \n Bot royhatdan otish uchun pastdagi tugmani bosing",
+    keyboard
+  );
 
+  //   await ctx.scene.enter("CONTACT_DATA");
+  //   contactData.enter((ctx) => {});
+  //   ctx.scene.enter("CONTACT_DATA");
+});
 //bundan pasga yozilishi togri boladi
 
 //commands
@@ -261,7 +296,12 @@ bot.action("uzbek", (ctx) => {
     telKeyboardUz
   );
 });
-
+bot.hears("Kirish", (ctx) => {
+  console.log("hear qildi");
+  //   await ctx.scene.enter("CONTACT_DATA");
+  //   contactData.enter((ctx) => {});
+  ctx.scene.enter("CONTACT_DATA");
+});
 //actions_
 
 const stage = new Scenes.Stage([contactData]);
@@ -269,12 +309,6 @@ const stage = new Scenes.Stage([contactData]);
 
 bot.use(session());
 bot.use(stage.middleware());
-bot.start(async (ctx) => {
-  ctx.reply("aaaa ");
-  //   await ctx.scene.enter("CONTACT_DATA");
-  contactData.enter((ctx) => {});
-  //   ctx.scene.enter("CONTACT_DATA");
-});
 
 bot.launch();
 console.log("Bot ishladi");
