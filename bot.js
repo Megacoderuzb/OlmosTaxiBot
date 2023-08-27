@@ -11,23 +11,21 @@ const productionAtmosToken = process.env.ProductionAtmosToken;
 
 //db connection
 db();
-// let result = User.create({
-//   first_name: "Muhammadjon",
-//   username: "qwertyuio",
-//   phone: "+999999999",
-// });
-// console.log(result);
 async function usersFind() {
+  let result = await User.create({
+    first_name: "Muhammadjon",
+    username: "qwertyuio",
+    phone: "+999999999",
+  });
+  console.log(result);
   const users = await User.findOne({
-    _id: "64ea2941466cfa7e8f25910b",
+    phone: "+999999999",
     is_deleted: false,
   }).select("-password -is_deleted");
   console.log(users);
   return users;
 }
-usersFind();
-// let users = User.findById("64ea2941466cfa7e8f25910b");
-// console.log(users, "shu");
+// usersFind();
 //db connection_
 
 // variables
@@ -42,6 +40,13 @@ const langs = {
   },
 };
 
+const language = Markup.keyboard([
+  Markup.button.callback("uz", isUtf8),
+  Markup.button.text("ru"),
+])
+  .oneTime()
+  .resize()
+  .selective();
 const keyboard = Markup.keyboard([Markup.button.callback("/start ", isUtf8)])
   .oneTime()
   .resize()
@@ -62,20 +67,18 @@ const telKeyboardUz = Markup.keyboard([
   .selective();
 
 // variables_end
-bot.start((ctx) => {
-  const keyboard = Markup.keyboard([Markup.button.callback("Kirish", isUtf8)])
-    .oneTime()
-    .resize()
-    .selective();
-  ctx.reply(
-    "Botga xush kelibsiz! \n Bot royhatdan otish uchun pastdagi tugmani bosing",
-    keyboard
-  );
+// const keyboard = Markup.keyboard([Markup.button.callback("Kirish", isUtf8)])
+//   .oneTime()
+//   .resize()
+//   .selective();
 
-  //   await ctx.scene.enter("CONTACT_DATA");
-  //   contactData.enter((ctx) => {});
-  //   ctx.scene.enter("CONTACT_DATA");
-});
+// ctx.reply(
+// "Botga xush kelibsiz! \n Bot royhatdan otish uchun pastdagi tugmani bosing",
+// keyboard
+// );
+
+//   await ctx.scene.enter("CONTACT_DATA");
+//   contactData.enter((ctx) => {});
 //bundan pasga yozilishi togri boladi
 
 //commands
@@ -111,19 +114,37 @@ const contactData = new Scenes.WizardScene(
   (ctx) => {
     ctx.reply(
       `Assalomu Alaykum Botimizga Xush kelibsiz! Tilni tanlang:\n\nПривет и добро пожаловать в наш бот! Выберите язык:`,
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "🇷🇺 Русский язык", callback_data: "russian" }],
-            [{ text: "🇺🇿 O'zbekcha", callback_data: "uzbek" }],
-          ],
-        },
-      }
+      language
+      // {
+      //   reply_markup: {
+      //     inline_keyboard: [
+      //       [{ text: "🇷🇺 Русский язык", callback_data: "russian" }],
+      //       [{ text: "🇺🇿 O'zbekcha", callback_data: "uzbek" }],
+      //     ],
+      //   },
+      // }
     );
     ctx.wizard.state.contactData = {};
     return ctx.wizard.next();
   },
   (ctx) => {
+    let rozichilik = Markup.keyboard([
+      Markup.button.text("ha"),
+      Markup.button.text("yo'q"),
+    ])
+      .oneTime()
+      .resize()
+      .selective();
+    ctx.reply("Oferta shartlari rozimisiz", rozichilik);
+
+    ctx.wizard.state.contactData.lang = ctx.message.text;
+    return ctx.wizard.next();
+  },
+  (ctx) => {
+    if (ctx.message.text !== "ha") {
+      ctx.reply("Unda pashol naxxuy");
+      return;
+    }
     ctx.reply(
       "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
       telKeyboardUz
@@ -139,66 +160,176 @@ const contactData = new Scenes.WizardScene(
     }
 
     const randomNumber = getRandomInt(100000, 999999);
-    ctx.wizard.state.contactData.phone = ctx.message.contact;
+    ctx.wizard.state.contactData.phone = ctx.message.contact.phone_number;
     ctx.wizard.state.contactData.code = randomNumber;
 
-    const url =
-      "http://api.smsuz.uz/v1/sms/send?token=0b0143b1-f076-44ea-822b-6359c2a0e422";
+    console.log(ctx.wizard.state.contactData.phone);
+    console.log(ctx.wizard.state.contactData.code);
 
-    const data = {
-      message: {
-        recipients: [`${userPhoneNumber}`],
-      },
-      priority: "default",
-      sms: {
-        content: `OlmosTaxi uchun tasdiqlash kodi : ${randomNumber}`,
-      },
-    };
+    // const url =
+    //   "http://api.smsuz.uz/v1/sms/send?token=0b0143b1-f076-44ea-822b-6359c2a0e422";
 
-    axios
-      .post(url, data)
-      .then((response) => {
-        console.log(response.data);
-        ctx.reply(
-          ctx.session.language == "uz"
-            ? "Yuborgan telefon raqamingizga kelgan kodni kiriting: "
-            : "Введите код, пришедший на отправленный вами номер телефона:",
-          keyboard
-        );
-      })
-      .catch((error) => {
-        console.error(error);
-        ctx.reply(
-          ctx.session.language == "uz"
-            ? `SMS yuborilmadi. Siz ko´p marotaba urindingiz, keyinroq urinib koring `
-            : "СМС не отправлено. Вы пытались сделать это слишком много раз, повторите попытку позже.",
-          keyboard
-        );
-      });
+    // const data = {
+    //   message: {
+    //     recipients: [`${ctx.wizard.state.contactData.phone}`],
+    //   },
+    //   priority: "default",
+    //   sms: {
+    //     content: `OlmosTaxi uchun tasdiqlash kodi : ${randomNumber}`,
+    //   },
+    // };
+
+    // axios
+    //   .post(url, data)
+    //   .then((response) => {
+    //     console.log(response.data);
+    //     ctx.reply(
+    //       ctx.session.language == "uz"
+    //         ? "Yuborgan telefon raqamingizga kelgan kodni kiriting: "
+    //         : "Введите код, пришедший на отправленный вами номер телефона:",
+    //       keyboard
+    //     );
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //     ctx.reply(
+    //       ctx.session.language == "uz"
+    //         ? `SMS yuborilmadi. Siz ko´p marotaba urindingiz, keyinroq urinib koring `
+    //         : "СМС не отправлено. Вы пытались сделать это слишком много раз, повторите попытку позже.",
+    //       keyboard
+    //     );
+    //   });
 
     // ctx.reply("raqamingizga sms yubordik wuni tasdiqlang");
     return ctx.wizard.next();
   },
   (ctx) => {
     // validation example
+    // console.log(
+    //   typeof ctx.message.text * 1 !== Number,
+    //   ctx.message.text * 1 === NaN
+    // );
+    if (ctx.message.text * 1 === NaN) {
+      ctx.reply("faqat raqamlarni kiriting");
+      return;
+    }
     if (ctx.message.text.length < 6) {
       ctx.reply("noto'g'ri raqam");
       return;
     }
-    if (typeof ctx.message.text * 1 !== Number || ctx.message.text * 1 == NaN) {
-      ctx.reply("faqat raqamlarni kiriting");
-      return;
-    }
-    if (ctx.message.text !== ctx.wizard.state.contactData.code) {
+    if (ctx.message.text * 1 !== ctx.wizard.state.contactData.code) {
       ctx.reply("notogri raqam");
       return;
     }
-    if (ctx.message.text === ctx.wizard.state.contactData.code) {
+    if (ctx.message.text * 1 === ctx.wizard.state.contactData.code) {
       //   ctx.wizard.state.contactData.phone = ctx.message.text;
       ctx.reply("Raqamingiz tasdiqlandi");
-      ctx.reply("");
-      return ctx.wizard.next();
+      let passtypes = Markup.keyboard([
+        Markup.button.text("id"),
+        Markup.button.text("biometrik"),
+      ])
+        .oneTime()
+        .resize()
+        .selective();
+      ctx.reply("passport turi", passtypes);
+      // ctx.reply(ctx.wizard.state.contactData.lang);
+      ctx.wizard.next();
     }
+    return ctx.wizard.next();
+  },
+  // (ctx) => {
+  //   // console.log("wetga keldi");
+
+  //   // ctx.wizard.state.contactData.lang = ctx.message.text;
+  //   return ctx.wizard.next();
+  // },
+  (ctx) => {
+    // if (ctx.message.text !== "ha") {
+    //   ctx.reply("Unda pashol naxxuy");
+    //   return;
+    // }
+    let buttons = Markup.keyboard([
+      Markup.button.text("ha"),
+      Markup.button.text("yo'q"),
+    ])
+      .oneTime()
+      .resize()
+      .selective();
+    ctx.reply("samozanyatemi", buttons);
+    ctx.wizard.state.contactData.passtype = ctx.message.text;
+    console.log(ctx.message.text);
+    return ctx.wizard.next();
+  },
+  (ctx) => {
+    ctx.reply("passport seria raqamini kiriting lotincada");
+    ctx.wizard.state.contactData.samozanyate = ctx.message.text;
+    console.log(ctx.message.text);
+    return ctx.wizard.next();
+  },
+  (ctx) => {
+    ctx.reply("pnflni kirgiz");
+    ctx.wizard.state.contactData.passportSeria = ctx.message.text;
+    console.log(ctx.message.text);
+    return ctx.wizard.next();
+  },
+  (ctx) => {
+    ctx.reply("tugilgan kuningiz");
+    ctx.wizard.state.contactData.pnfl = ctx.message.text;
+    console.log(ctx.message.text);
+    return ctx.wizard.next();
+  },
+  (ctx) => {
+    ctx.reply("passportni rasmini tawa");
+    ctx.wizard.state.contactData.birthday = ctx.message.text;
+    console.log(ctx.message.text);
+    return ctx.wizard.next();
+  },
+  async (ctx) => {
+    ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
+    const photo = ctx.message.photo;
+    console.log("this is photos", photo);
+    // const photoId = photo.file_id;
+
+    // Get the admin's chat ID
+    const adminChatId = "5033207519"; // Change it to the actual admin's chat ID
+
+    console.log(ctx.chat.first_name, ctx.chat.username);
+    let name =
+      ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : ""; // Forward the photo to the admin
+
+    let username = ctx.chat.username ? ctx.chat.username : " ";
+    const media = photo.map((p) => ({
+      media: p.file_id,
+      type: "photo",
+      caption: `From ${name}: \n @${username}`,
+    }));
+    // {
+    //   caption: `From ${name}: \n @${username}`,
+    // }
+    function filterSameFileIds(data) {
+      const fileIds = {};
+      const filteredData = [];
+
+      for (let item of data) {
+        const fileId = item.file_id;
+
+        if (!fileIds[fileId]) {
+          fileIds[fileId] = true;
+          filteredData.push(item);
+        }
+      }
+
+      return filteredData;
+    }
+    let data = filterSameFileIds(media);
+    await ctx.telegram.sendMediaGroup(adminChatId, data, {
+      caption: "passport",
+    });
+
+    // Send a confirmation message to the user
+    await ctx.reply("Your photo has been shared with the admin.");
+    // });
+    return ctx.wizard.next();
   },
   async (ctx) => {
     ctx.wizard.state.contactData.email = ctx.message.text;
@@ -227,7 +358,7 @@ contactData.action("uzbek", (ctx) => {
     ctx.reply("Til muvaffaqiyatli o'zgartirildi!✅");
     return;
   }
-
+  // console.log(ctx.wizard.state.contactData.code);
   ctx.session.language = "uz";
   let file = fs.readFileSync(
     path.join(__dirname + "/ofertauz/MOLDE_Caja Huevo de Dinosaurio.pdf")
@@ -243,7 +374,15 @@ contactData.action("uzbek", (ctx) => {
     telKeyboardUz
   );
 });
+const stage = new Scenes.Stage([contactData]);
+// const stage = new Scenes.Stage([wizardScene, getSMSCodScene, getAll]);
 
+bot.use(session());
+bot.use(stage.middleware());
+
+bot.start((ctx) => {
+  ctx.scene.enter("CONTACT_DATA");
+});
 //scenes_
 
 //actions
@@ -296,19 +435,13 @@ bot.action("uzbek", (ctx) => {
     telKeyboardUz
   );
 });
-bot.hears("Kirish", (ctx) => {
-  console.log("hear qildi");
-  //   await ctx.scene.enter("CONTACT_DATA");
-  //   contactData.enter((ctx) => {});
-  ctx.scene.enter("CONTACT_DATA");
-});
+// bot.hears("Kirish", (ctx) => {
+//   console.log("hear qildi");
+//   //   await ctx.scene.enter("CONTACT_DATA");
+//   //   contactData.enter((ctx) => {});
+//   ctx.scene.enter("CONTACT_DATA");
+// });
 //actions_
-
-const stage = new Scenes.Stage([contactData]);
-// const stage = new Scenes.Stage([wizardScene, getSMSCodScene, getAll]);
-
-bot.use(session());
-bot.use(stage.middleware());
 
 bot.launch();
 console.log("Bot ishladi");

@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
-
+require("dotenv/config");
 module.exports = async function () {
   return mongoose
-    .connect("mongodb://127.0.0.1:27017/OlmosTaxi", {
+    .connect(process.env.DB_URL, {
+      //mongodb://127.0.0.1:27017/OlmosTaxi
       useNewUrlParser: true,
       useUnifiedTopology: true,
     })
