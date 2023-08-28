@@ -29,6 +29,7 @@ async function usersFind() {
 //db connection_
 
 // variables
+const adminChatId = "5033207519";
 // console.log(process.env.BOT_TOKEN);
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const langs = {
@@ -128,6 +129,10 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
+    ctx.wizard.state.contactData.lang = ctx.message.text;
     let rozichilik = Markup.keyboard([
       Markup.button.text("ha"),
       Markup.button.text("yo'q"),
@@ -135,24 +140,33 @@ const contactData = new Scenes.WizardScene(
       .oneTime()
       .resize()
       .selective();
-    ctx.reply("Oferta shartlari rozimisiz", rozichilik);
 
-    ctx.wizard.state.contactData.lang = ctx.message.text;
+    ctx.reply(
+      "Oferta shartlari rozimisiz \n https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link",
+      rozichilik
+    );
+
     return ctx.wizard.next();
   },
   (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     if (ctx.message.text !== "ha") {
-      ctx.reply("Unda pashol naxxuy");
+      ctx.reply("Unda uzur biz siz bilan ishlay olmaymiz");
       return;
     }
     ctx.reply(
       "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
       telKeyboardUz
     );
-    ctx.wizard.state.contactData.lang = ctx.message.text;
+    // ctx.wizard.state.contactData.lang = ctx.message.text;
     return ctx.wizard.next();
   },
   (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     function getRandomInt(min, max) {
       min = Math.ceil(min);
       max = Math.floor(max);
@@ -205,6 +219,9 @@ const contactData = new Scenes.WizardScene(
   },
   (ctx) => {
     // validation example
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     // console.log(
     //   typeof ctx.message.text * 1 !== Number,
     //   ctx.message.text * 1 === NaN
@@ -244,6 +261,9 @@ const contactData = new Scenes.WizardScene(
   //   return ctx.wizard.next();
   // },
   (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     // if (ctx.message.text !== "ha") {
     //   ctx.reply("Unda pashol naxxuy");
     //   return;
@@ -261,51 +281,58 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     ctx.reply("passport seria raqamini kiriting lotincada");
     ctx.wizard.state.contactData.samozanyate = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     ctx.reply("pnflni kirgiz");
     ctx.wizard.state.contactData.passportSeria = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     ctx.reply("tugilgan kuningiz");
     ctx.wizard.state.contactData.pnfl = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     ctx.reply("passportni rasmini tawa");
     ctx.wizard.state.contactData.birthday = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   async (ctx) => {
-    ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
     const photo = ctx.message.photo;
     console.log("this is photos", photo);
-    // const photoId = photo.file_id;
-
-    // Get the admin's chat ID
-    const adminChatId = "5033207519"; // Change it to the actual admin's chat ID
 
     console.log(ctx.chat.first_name, ctx.chat.username);
     let name =
-      ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : ""; // Forward the photo to the admin
-
+      ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
     let username = ctx.chat.username ? ctx.chat.username : " ";
     const media = photo.map((p) => ({
       media: p.file_id,
       type: "photo",
-      caption: `From ${name}: \n @${username}`,
+      caption: `From ${name}: \n @${username} \n Passport`,
     }));
-    // {
-    //   caption: `From ${name}: \n @${username}`,
-    // }
+
     function filterSameFileIds(data) {
       const fileIds = {};
       const filteredData = [];
@@ -322,19 +349,100 @@ const contactData = new Scenes.WizardScene(
       return filteredData;
     }
     let data = filterSameFileIds(media);
-    await ctx.telegram.sendMediaGroup(adminChatId, data, {
-      caption: "passport",
-    });
+    console.log("data", data);
+    await ctx.telegram.sendMediaGroup("5033207519", data);
 
-    // Send a confirmation message to the user
-    await ctx.reply("Your photo has been shared with the admin.");
+    await ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
+    // await ctx.reply("Your photo has been shared with the admin.");
     // });
     return ctx.wizard.next();
   },
   async (ctx) => {
-    ctx.wizard.state.contactData.email = ctx.message.text;
-    ctx.reply("Thank you for your replies, we'll contact your soon");
-    // await mySendContactDataMomentBeforeErase(ctx.wizard.state.contactData);
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
+    const photo = ctx.message.photo;
+    console.log("this is photos", photo);
+
+    console.log(ctx.chat.first_name, ctx.chat.username);
+    let name =
+      ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
+    let username = ctx.chat.username ? ctx.chat.username : " ";
+    const media = photo.map((p) => ({
+      media: p.file_id,
+      type: "photo",
+      caption: `From ${name}: \n @${username} \n litsevoy`,
+    }));
+
+    function filterSameFileIds(data) {
+      const fileIds = {};
+      const filteredData = [];
+
+      for (let item of data) {
+        const fileId = item.file_id;
+
+        if (!fileIds[fileId]) {
+          fileIds[fileId] = true;
+          filteredData.push(item);
+        }
+      }
+
+      return filteredData;
+    }
+    let data = filterSameFileIds(media);
+    console.log("data", data);
+    await ctx.telegram.sendMediaGroup("5033207519", data);
+
+    // await ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
+    // await ctx.reply("Your photo has been shared with the admin.");
+    // });
+    return ctx.wizard.next();
+  },
+  async (ctx) => {
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
+    const photo = ctx.message.photo;
+    console.log("this is photos", photo);
+
+    console.log(ctx.chat.first_name, ctx.chat.username);
+    let name =
+      ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
+    let username = ctx.chat.username ? ctx.chat.username : " ";
+    const media = photo.map((p) => ({
+      media: p.file_id,
+      type: "photo",
+      caption: `From ${name}: \n @${username} \n litsevoy`,
+    }));
+
+    function filterSameFileIds(data) {
+      const fileIds = {};
+      const filteredData = [];
+
+      for (let item of data) {
+        const fileId = item.file_id;
+
+        if (!fileIds[fileId]) {
+          fileIds[fileId] = true;
+          filteredData.push(item);
+        }
+      }
+
+      return filteredData;
+    }
+    let data = filterSameFileIds(media);
+    console.log("data", data);
+    await ctx.telegram.sendMediaGroup("5033207519", data);
+    await ctx.reply(
+      "Barcha malumotlaringiz adminlarga jonatildi. Tasdiqlanishini kuting"
+    );
+    // let ism =
+    //   ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
+    // let user = ctx.chat.username ? ctx.chat.username : " ";
+    // ctx.telegram.sendMessage(
+    //   adminChatId,
+    //   `Murojatchi: ${ism}, \n Username: ${user} \n Telefon Raqami: ${ctx.wizard.state.contactData.phone} \n Passport Turi: ${ctx.wizard.state.contactData.passtype} \n samozanyate: ${ctx.wizard.state.contactData.samozanyate} \n Passport Seria Raqami: ${ctx.wizard.state.contactData.passportSeria} \n PNFL: ${ctx.wizard.state.contactData.pnfl} \n Tugilgan Sana: ${ctx.wizard.state.contactData.pnfl} `
+    // );
     return ctx.scene.leave();
   }
 );
@@ -384,7 +492,32 @@ bot.start((ctx) => {
   ctx.scene.enter("CONTACT_DATA");
 });
 //scenes_
+// bot.command("sendpdf", async (ctx) => {
+//   try {
+//     const pdfPath = "./ofertauz/MOLDE_Caja Huevo de Dinosaurio.pdf";
+//     const chatId = ctx.from.id;
 
+//     await ctx.reply("Sending PDF ...");
+
+//     const fileStream = fs.createReadStream(pdfPath, "utf-8");
+//     ctx.telegram.sendDocument(
+//       chatId,
+//       fileStream
+//       //   {
+//       //   source:
+//       //     "https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link",
+//       // }
+//     );
+//     // document: "./ofertauz/MOLDE_Caja Huevo de Dinosaurio.pdf",
+//     // "https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link"
+//     await ctx.sendDocument(chatId, { source: fileStream });
+
+//     await ctx.reply("PDF file sent successfully!");
+//   } catch (error) {
+//     console.error("Error sending PDF file:", error);
+//     await ctx.reply("Failed to send PDF file.");
+//   }
+// });
 //actions
 const warningWords = ["/start", "kirish", "aвторизоваться", "/help", "dev"]; // Taqiqlangan so'zlarning ro'yxati
 
