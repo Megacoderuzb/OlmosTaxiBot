@@ -264,10 +264,11 @@ const contactData = new Scenes.WizardScene(
     if (ctx.message.text === "/start") {
       ctx.scene.leave();
     }
-    // if (ctx.message.text !== "ha") {
-    //   ctx.reply("Unda pashol naxxuy");
-    //   return;
-    // }
+    if (ctx.message.text !== "id" || ctx.message.text !== "biometrik") {
+      ctx.reply("bunaqa variant yoq");
+      return;
+    }
+    ctx.wizard.state.contactData.passtype = ctx.message.text;
     let buttons = Markup.keyboard([
       Markup.button.text("ha"),
       Markup.button.text("yo'q"),
@@ -276,8 +277,7 @@ const contactData = new Scenes.WizardScene(
       .resize()
       .selective();
     ctx.reply("samozanyatemi", buttons);
-    ctx.wizard.state.contactData.passtype = ctx.message.text;
-    console.log(ctx.message.text);
+    console.log(ctx.wizard.state.contactData.passtype, "bu passtype");
     return ctx.wizard.next();
   },
   (ctx) => {
@@ -286,7 +286,7 @@ const contactData = new Scenes.WizardScene(
     }
     ctx.reply("passport seria raqamini kiriting lotincada");
     ctx.wizard.state.contactData.samozanyate = ctx.message.text;
-    console.log(ctx.message.text);
+    console.log(ctx.message.text, "bu samozanyate");
     return ctx.wizard.next();
   },
   (ctx) => {
@@ -357,47 +357,47 @@ const contactData = new Scenes.WizardScene(
     // });
     return ctx.wizard.next();
   },
-  async (ctx) => {
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
-    const photo = ctx.message.photo;
-    console.log("this is photos", photo);
+  // async (ctx) => {
+  //   if (ctx.message.text === "/start") {
+  //     ctx.scene.leave();
+  //   }
+  //   const photo = ctx.message.photo;
+  //   console.log("this is photos", photo);
 
-    console.log(ctx.chat.first_name, ctx.chat.username);
-    let name =
-      ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
-    let username = ctx.chat.username ? ctx.chat.username : " ";
-    const media = photo.map((p) => ({
-      media: p.file_id,
-      type: "photo",
-      caption: `From ${name}: \n @${username} \n litsevoy`,
-    }));
+  //   console.log(ctx.chat.first_name, ctx.chat.username);
+  //   let name =
+  //     ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
+  //   let username = ctx.chat.username ? ctx.chat.username : " ";
+  //   const media = photo.map((p) => ({
+  //     media: p.file_id,
+  //     type: "photo",
+  //     caption: `From ${name}: \n @${username} \n litsevoy`,
+  //   }));
 
-    function filterSameFileIds(data) {
-      const fileIds = {};
-      const filteredData = [];
+  //   function filterSameFileIds(data) {
+  //     const fileIds = {};
+  //     const filteredData = [];
 
-      for (let item of data) {
-        const fileId = item.file_id;
+  //     for (let item of data) {
+  //       const fileId = item.file_id;
 
-        if (!fileIds[fileId]) {
-          fileIds[fileId] = true;
-          filteredData.push(item);
-        }
-      }
+  //       if (!fileIds[fileId]) {
+  //         fileIds[fileId] = true;
+  //         filteredData.push(item);
+  //       }
+  //     }
 
-      return filteredData;
-    }
-    let data = filterSameFileIds(media);
-    console.log("data", data);
-    await ctx.telegram.sendMediaGroup("5033207519", data);
+  //     return filteredData;
+  //   }
+  //   let data = filterSameFileIds(media);
+  //   console.log("data", data);
+  //   await ctx.telegram.sendMediaGroup("5033207519", data);
 
     // await ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
     // await ctx.reply("Your photo has been shared with the admin.");
     // });
-    return ctx.wizard.next();
-  },
+  //   return ctx.wizard.next();
+  // },
   async (ctx) => {
     if (ctx.message.text === "/start") {
       ctx.scene.leave();
@@ -436,13 +436,15 @@ const contactData = new Scenes.WizardScene(
     await ctx.reply(
       "Barcha malumotlaringiz adminlarga jonatildi. Tasdiqlanishini kuting"
     );
-    // let ism =
-    //   ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
-    // let user = ctx.chat.username ? ctx.chat.username : " ";
-    // ctx.telegram.sendMessage(
-    //   adminChatId,
-    //   `Murojatchi: ${ism}, \n Username: ${user} \n Telefon Raqami: ${ctx.wizard.state.contactData.phone} \n Passport Turi: ${ctx.wizard.state.contactData.passtype} \n samozanyate: ${ctx.wizard.state.contactData.samozanyate} \n Passport Seria Raqami: ${ctx.wizard.state.contactData.passportSeria} \n PNFL: ${ctx.wizard.state.contactData.pnfl} \n Tugilgan Sana: ${ctx.wizard.state.contactData.pnfl} `
-    // );
+    let ism =
+      ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
+    let user = ctx.chat.username ? ctx.chat.username : " ";
+    console.log(ism, user);
+    console.log(ctx.wizard.state.contactData.passtype);
+    await ctx.telegram.sendMessage(
+      adminChatId,
+      `Murojatchi: ${ism}, \n Username: ${user} \n Telefon Raqami: ${ctx.wizard.state.contactData.phone} \n Passport Turi: ${ctx.wizard.state.contactData.passtype} \n samozanyate: ${ctx.wizard.state.contactData.samozanyate} \n Passport Seria Raqami: ${ctx.wizard.state.contactData.passportSeria} \n PNFL: ${ctx.wizard.state.contactData.pnfl} \n Tugilgan Sana: ${ctx.wizard.state.contactData.birthday} `
+    );
     return ctx.scene.leave();
   }
 );
