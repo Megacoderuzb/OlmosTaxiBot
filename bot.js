@@ -12,14 +12,14 @@ const productionAtmosToken = process.env.ProductionAtmosToken;
 //db connection
 db();
 async function usersFind() {
-  let result = await User.create({
-    first_name: "Muhammadjon",
-    username: "qwertyuio",
-    phone: "+999999999",
-  });
-  console.log(result);
+  // let result = await User.create({
+  //   full_name: "Muhammadjon",
+  //   username: "mega_coder_uzb",
+  //   phone: "+998916223406",
+  // });
+  // console.log(result);
   const users = await User.findOne({
-    phone: "+999999999",
+    phone: "+998916223406",
     is_deleted: false,
   }).select("-password -is_deleted");
   console.log(users);
@@ -261,6 +261,7 @@ const contactData = new Scenes.WizardScene(
   //   return ctx.wizard.next();
   // },
   (ctx) => {
+    console.log(ctx.message.text, "passportturi");
     if (ctx.message.text === "/start") {
       ctx.scene.leave();
     }
@@ -268,6 +269,24 @@ const contactData = new Scenes.WizardScene(
       ctx.reply("bunaqa variant yoq");
       return;
     }
+    ctx.wizard.state.contactData.passtype = ctx.message.text;
+    // let buttons = Markup.keyboard([
+    //   Markup.button.text("ha"),
+    //   Markup.button.text("yo'q"),
+    // ])
+    //   .oneTime()
+    //   .resize()
+    //   .selective();
+    // ctx.reply("samozanyatemi", buttons);
+    console.log(ctx.wizard.state.contactData.passtype, "bu passtype");
+    return ctx.wizard.next();
+  },
+  (ctx) => {
+    console.log(ctx.message.text, "passportturi");
+    if (ctx.message.text === "/start") {
+      ctx.scene.leave();
+    }
+
     ctx.wizard.state.contactData.passtype = ctx.message.text;
     let buttons = Markup.keyboard([
       Markup.button.text("ha"),
@@ -393,9 +412,9 @@ const contactData = new Scenes.WizardScene(
   //   console.log("data", data);
   //   await ctx.telegram.sendMediaGroup("5033207519", data);
 
-    // await ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
-    // await ctx.reply("Your photo has been shared with the admin.");
-    // });
+  // await ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
+  // await ctx.reply("Your photo has been shared with the admin.");
+  // });
   //   return ctx.wizard.next();
   // },
   async (ctx) => {
@@ -441,9 +460,38 @@ const contactData = new Scenes.WizardScene(
     let user = ctx.chat.username ? ctx.chat.username : " ";
     console.log(ism, user);
     console.log(ctx.wizard.state.contactData.passtype);
+    let self_employment =
+      ctx.wizard.state.contactData.samozanyate == "ha" ? true : false;
+    let result = await User.create({
+      full_name: ism,
+      username: user,
+      phone: ctx.wizard.state.contactData.phone,
+      pnfl: ctx.wizard.state.contactData.pnfl,
+      passport_seria: ctx.wizard.state.contactData.passportSeria,
+      self_employment: self_employment,
+    });
+    console.log(result);
     await ctx.telegram.sendMessage(
       adminChatId,
-      `Murojatchi: ${ism}, \n Username: ${user} \n Telefon Raqami: ${ctx.wizard.state.contactData.phone} \n Passport Turi: ${ctx.wizard.state.contactData.passtype} \n samozanyate: ${ctx.wizard.state.contactData.samozanyate} \n Passport Seria Raqami: ${ctx.wizard.state.contactData.passportSeria} \n PNFL: ${ctx.wizard.state.contactData.pnfl} \n Tugilgan Sana: ${ctx.wizard.state.contactData.birthday} `
+      `Murojatchi: ${ism}, \n Username: ${user} \n Telefon Raqami: ${ctx.wizard.state.contactData.phone} \n Passport Turi: ${ctx.wizard.state.contactData.passtype} \n samozanyate: ${ctx.wizard.state.contactData.samozanyate} \n Passport Seria Raqami: ${ctx.wizard.state.contactData.passportSeria} \n PNFL: ${ctx.wizard.state.contactData.pnfl} \n Tugilgan Sana: ${ctx.wizard.state.contactData.birthday} `,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "Tasdiqlash",
+                callback_data: `approve_${result._id}`,
+              },
+            ],
+            [
+              {
+                text: "Bekor qilish",
+                callback_data: `cancel_${result._id}`,
+              },
+            ],
+          ],
+        },
+      }
     );
     return ctx.scene.leave();
   }
@@ -462,6 +510,36 @@ contactData.action("russian", (ctx) => {
   );
 });
 
+contactData.action("cancel:(.*)", (ctx) => {
+  const id = ctx.match[1];
+  console.log("bekor qildi scenedan", id);
+});
+contactData.action("complate:(.*)", (ctx) => {
+  const id = ctx.match[1];
+  console.log("complate qildi qildi scenedan", id);
+});
+bot.action("cancel", (ctx) => {
+  const id = ctx.match[1];
+  console.log("bekor qildi tawqaridan", id);
+});
+bot.action("complate", (ctx) => {
+  const id = ctx.match[1];
+  console.log("complate qildi qildi tawqaridan", id);
+});
+bot.action(/(approve|cancel)_/, (ctx) => {
+  const action = ctx.match[1];
+  const id = ctx.callbackQuery.data.split("_")[1];
+  console.log(id);
+  if (action === "approve") {
+    // Buttonni tasdiqlash
+    // id bo'yicha kerakli ma'lumotni MongoDB dan olish
+  } else if (action === "cancel") {
+    // Buttonni bekor qilish
+    // id bo'yicha kerakli ma'lumotni MongoDB dan olish
+  }
+
+  ctx.answerCbQuery();
+});
 contactData.action("uzbek", (ctx) => {
   if (ctx.session.language) {
     ctx.session.language = "uz";

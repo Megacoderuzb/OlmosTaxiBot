@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    first_name: {
+    full_name: {
       type: mongoose.SchemaTypes.String,
       required: true,
     },
@@ -14,12 +14,27 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    pnfl: {
+      type: mongoose.SchemaTypes.String,
+    },
+    passport_seria: {
+      type: mongoose.SchemaTypes.String,
+    },
+    self_employment: {
+      type: mongoose.SchemaTypes.Boolean,
+    },
+    is_complated: {
+      type: mongoose.SchemaTypes.Boolean,
+      default: false,
+    },
     is_deleted: {
       type: mongoose.SchemaTypes.Boolean,
       default: false,
     },
   },
   {
+    // _id: false,
+    // id: true,
     versionKey: false,
     timestamps: {
       createdAt: "created_at",
