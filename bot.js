@@ -217,15 +217,12 @@ const contactData = new Scenes.WizardScene(
     // ctx.reply("raqamingizga sms yubordik wuni tasdiqlang");
     return ctx.wizard.next();
   },
-  (ctx) => {
-    // validation example
+  async (ctx) => {
+    // validation
     if (ctx.message.text === "/start") {
       ctx.scene.leave();
     }
-    // console.log(
-    //   typeof ctx.message.text * 1 !== Number,
-    //   ctx.message.text * 1 === NaN
-    // );
+
     if (ctx.message.text * 1 === NaN) {
       ctx.reply("faqat raqamlarni kiriting");
       return;
@@ -239,8 +236,8 @@ const contactData = new Scenes.WizardScene(
       return;
     }
     if (ctx.message.text * 1 === ctx.wizard.state.contactData.code) {
-      //   ctx.wizard.state.contactData.phone = ctx.message.text;
       ctx.reply("Raqamingiz tasdiqlandi");
+
       let passtypes = Markup.keyboard([
         Markup.button.text("id"),
         Markup.button.text("biometrik"),
@@ -249,17 +246,12 @@ const contactData = new Scenes.WizardScene(
         .resize()
         .selective();
       ctx.reply("passport turi", passtypes);
-      // ctx.reply(ctx.wizard.state.contactData.lang);
+
       ctx.wizard.next();
     }
     return ctx.wizard.next();
   },
-  // (ctx) => {
-  //   // console.log("wetga keldi");
 
-  //   // ctx.wizard.state.contactData.lang = ctx.message.text;
-  //   return ctx.wizard.next();
-  // },
   (ctx) => {
     console.log(ctx.message.text, "passportturi");
     if (ctx.message.text === "/start") {
@@ -270,14 +262,7 @@ const contactData = new Scenes.WizardScene(
       return;
     }
     ctx.wizard.state.contactData.passtype = ctx.message.text;
-    // let buttons = Markup.keyboard([
-    //   Markup.button.text("ha"),
-    //   Markup.button.text("yo'q"),
-    // ])
-    //   .oneTime()
-    //   .resize()
-    //   .selective();
-    // ctx.reply("samozanyatemi", buttons);
+
     console.log(ctx.wizard.state.contactData.passtype, "bu passtype");
     return ctx.wizard.next();
   },
@@ -372,51 +357,10 @@ const contactData = new Scenes.WizardScene(
     await ctx.telegram.sendMediaGroup("5033207519", data);
 
     await ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
-    // await ctx.reply("Your photo has been shared with the admin.");
-    // });
+
     return ctx.wizard.next();
   },
-  // async (ctx) => {
-  //   if (ctx.message.text === "/start") {
-  //     ctx.scene.leave();
-  //   }
-  //   const photo = ctx.message.photo;
-  //   console.log("this is photos", photo);
 
-  //   console.log(ctx.chat.first_name, ctx.chat.username);
-  //   let name =
-  //     ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
-  //   let username = ctx.chat.username ? ctx.chat.username : " ";
-  //   const media = photo.map((p) => ({
-  //     media: p.file_id,
-  //     type: "photo",
-  //     caption: `From ${name}: \n @${username} \n litsevoy`,
-  //   }));
-
-  //   function filterSameFileIds(data) {
-  //     const fileIds = {};
-  //     const filteredData = [];
-
-  //     for (let item of data) {
-  //       const fileId = item.file_id;
-
-  //       if (!fileIds[fileId]) {
-  //         fileIds[fileId] = true;
-  //         filteredData.push(item);
-  //       }
-  //     }
-
-  //     return filteredData;
-  //   }
-  //   let data = filterSameFileIds(media);
-  //   console.log("data", data);
-  //   await ctx.telegram.sendMediaGroup("5033207519", data);
-
-  // await ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
-  // await ctx.reply("Your photo has been shared with the admin.");
-  // });
-  //   return ctx.wizard.next();
-  // },
   async (ctx) => {
     if (ctx.message.text === "/start") {
       ctx.scene.leave();
@@ -465,7 +409,9 @@ const contactData = new Scenes.WizardScene(
     let result = await User.create({
       full_name: ism,
       username: user,
+      tg_id: ctx.from.id,
       phone: ctx.wizard.state.contactData.phone,
+      lang: ctx.wizard.state.contactData.lang,
       pnfl: ctx.wizard.state.contactData.pnfl,
       passport_seria: ctx.wizard.state.contactData.passportSeria,
       self_employment: self_employment,
@@ -510,30 +456,42 @@ contactData.action("russian", (ctx) => {
   );
 });
 
-contactData.action("cancel:(.*)", (ctx) => {
-  const id = ctx.match[1];
-  console.log("bekor qildi scenedan", id);
-});
-contactData.action("complate:(.*)", (ctx) => {
-  const id = ctx.match[1];
-  console.log("complate qildi qildi scenedan", id);
-});
-bot.action("cancel", (ctx) => {
-  const id = ctx.match[1];
-  console.log("bekor qildi tawqaridan", id);
-});
-bot.action("complate", (ctx) => {
-  const id = ctx.match[1];
-  console.log("complate qildi qildi tawqaridan", id);
-});
-bot.action(/(approve|cancel)_/, (ctx) => {
+// contactData.action("cancel:(.*)", (ctx) => {
+//   const id = ctx.match[1];
+//   console.log("bekor qildi scenedan", id);
+// });
+// contactData.action("complate:(.*)", (ctx) => {
+//   const id = ctx.match[1];
+//   console.log("complate qildi qildi scenedan", id);
+// });
+// bot.action("cancel", (ctx) => {
+//   const id = ctx.match[1];
+//   console.log("bekor qildi tawqaridan", id);
+// });
+// bot.action("complate", (ctx) => {
+//   const id = ctx.match[1];
+//   console.log("complate qildi qildi tawqaridan", id);
+// });
+bot.action(/(approve|cancel)_/, async (ctx) => {
   const action = ctx.match[1];
   const id = ctx.callbackQuery.data.split("_")[1];
   console.log(id);
   if (action === "approve") {
+    const updated = await User.findByIdAndUpdate(
+      id,
+      { is_complated: true, is_deleted: false },
+      { new: true }
+    );
+    console.log(updated);
     // Buttonni tasdiqlash
     // id bo'yicha kerakli ma'lumotni MongoDB dan olish
   } else if (action === "cancel") {
+    const deleted = await User.findByIdAndUpdate(
+      id,
+      { is_deleted: true, is_complated: false },
+      { new: true }
+    );
+    console.log(deleted);
     // Buttonni bekor qilish
     // id bo'yicha kerakli ma'lumotni MongoDB dan olish
   }
@@ -568,7 +526,23 @@ const stage = new Scenes.Stage([contactData]);
 bot.use(session());
 bot.use(stage.middleware());
 
-bot.start((ctx) => {
+bot.start(async (ctx) => {
+  console.log(ctx.from.id);
+  const userInDb = await User.findOne({
+    tg_id: ctx.from.id,
+  });
+  console.log("ifdan oldin", userInDb);
+  if (userInDb !== null && userInDb.is_complated) {
+    console.log(userInDb.is_complated);
+    ctx.reply("Harakat");
+    // ctx.scene.leave();
+    return;
+  }
+  if (userInDb !== null && userInDb.is_complated === false) {
+    ctx.reply(
+      "siz oldin royhatdan otgansiz iltimos admin tasdiqlashini kuting"
+    );
+  }
   ctx.scene.enter("CONTACT_DATA");
 });
 //scenes_

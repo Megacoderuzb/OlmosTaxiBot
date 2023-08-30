@@ -6,6 +6,11 @@ const userSchema = new mongoose.Schema(
       type: mongoose.SchemaTypes.String,
       required: true,
     },
+    tg_id: {
+      type: mongoose.SchemaTypes.Number,
+      required: true,
+      unique: true,
+    },
     username: {
       type: mongoose.SchemaTypes.String,
     },
@@ -13,6 +18,9 @@ const userSchema = new mongoose.Schema(
       type: mongoose.SchemaTypes.String,
       required: true,
       unique: true,
+    },
+    lang: {
+      type: mongoose.SchemaTypes.String,
     },
     pnfl: {
       type: mongoose.SchemaTypes.String,
