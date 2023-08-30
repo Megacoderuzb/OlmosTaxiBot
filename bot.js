@@ -29,7 +29,7 @@ async function usersFind(phone) {
 async function addcard(tg_id, numbers) {
   let card = await Card.create({ tg_id, numbers });
 }
-// addcard(5033207519,1234567898765432)
+// addcard(5033207519, 1234567898761223);
 //db connection_
 
 // variables
@@ -1039,6 +1039,7 @@ bot.action("cards", async (ctx) => {
     console.log(e);
   }
   const card_buttons = Markup.keyboard([
+    
     Markup.button.text("Yangi karta qoshish"),
     Markup.button.text("ortga"),
   ])

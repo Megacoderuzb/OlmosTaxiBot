@@ -5,7 +5,6 @@ const cardSchema = new mongoose.Schema(
     tg_id: {
       type: mongoose.SchemaTypes.Number,
       required: true,
-      unique: true,
     },
     numbers: {
       type: mongoose.SchemaTypes.Number,
