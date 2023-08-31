@@ -1179,7 +1179,7 @@ bot.action("cards", async (ctx) => {
   ctx.reply("Mening kartalarim", card_buttons);
 });
 bot.hears("Yangi karta qo'shish", (ctx) => {
-  ctx.scene.enter("getCardInfo");
+  ctx.scene.enter("add_card");
 });
 // bot.hears("Kirish", (ctx) => {
 //   console.log("hear qildi");
