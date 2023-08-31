@@ -29,7 +29,7 @@ async function usersFind(phone) {
 async function addcard(tg_id, numbers) {
   let card = await Card.create({ tg_id, numbers });
 }
-// addcard(5033207519, 1234567898761223);
+// addcard(5033207519, 7777777777777777);
 //db connection_
 
 // variables
@@ -82,6 +82,7 @@ async function getToken() {
 }
 
 // const regtoken = getToken();
+let regtoken = { text: "qq" };
 //
 // variables_end
 // const keyboard = Markup.keyboard([Markup.button.callback("Kirish", isUtf8)])
@@ -421,9 +422,12 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   (ctx) => {
-    if (ctx.message.text === "/start") {
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
       ctx.scene.leave();
+      // ctx.wizard.back();
+      // return;
     }
+    // ctx.wizard.back();
     ctx.reply("passportni rasmini yuklang");
     ctx.wizard.state.contactData.birthday = ctx.message.text;
     console.log(ctx.message.text);
@@ -591,6 +595,11 @@ bot.action(/(approve|cancel)_/, async (ctx) => {
     );
     console.log(updated);
     ctx.reply("Tasdiqlandi ✅");
+    ctx.telegram.sendMessage(
+      updated.tg_id,
+      "Sizning So'rovingiz Tasdiqlandi ✅"
+    );
+
     // Buttonni tasdiqlash
   } else if (action === "cancel") {
     const deleted = await User.findByIdAndUpdate(
@@ -600,6 +609,10 @@ bot.action(/(approve|cancel)_/, async (ctx) => {
     );
     console.log(deleted);
     ctx.reply("Bekor qilindi ❌");
+    ctx.telegram.sendMessage(
+      updated.tg_id,
+      "Sizning So'rovingiz Bekor qilindi ❌"
+    );
     // Buttonni bekor qilish
   }
 
@@ -676,10 +689,8 @@ const wizardScene = new Scenes.WizardScene(
       console.log(userCardInfo);
       delete ctx.wizard.state["cardInfo"]; // clear state to start over again
       return ctx.reply(
-        user.lang == "uz"
-          ? "Karta raqami xato"
-          : "Неверный формат номера карты",
-        user.lang == "uz" ? telKeyboardUz : telKeyboardRu
+        user.lang == "uz" ? "Karta raqami xato" : "Неверный формат номера карты"
+        // user.lang == "uz" ? telKeyboardUz : telKeyboardRu
       );
     }
 
@@ -875,8 +886,119 @@ const wizardScene = new Scenes.WizardScene(
 );
 
 // const stage = new Scenes.Stage([wizardScene, getSMSCodScene, getAll]);
+const CardScene = new Scenes.WizardScene(
+  "add_card",
+  (ctx) => {
+    console.log(user.lang);
+    ctx.reply(
+      user.lang == "uz"
+        ? "Iltimos karta raqamini kiriting"
+        : "Пожалуйста, введите номер карты",
+      keyboard
+    );
+    return ctx.wizard.next();
+    // Stop
+  },
+  async (ctx) => {
+    ctx.wizard.state.cardInfo = {};
+    if (!ctx.message?.text) {
+      return;
+    }
+    ctx.wizard.state.cardInfo.userCardInfo = ctx.message?.text;
+    console.log(ctx.wizard.state.cardInfo.userCardInfo);
 
-const stage = new Scenes.Stage([contactData, wizardScene]);
+    // const regtoken = ctx.session.regToken;
+    const userCardInfo = ctx.wizard.state.cardInfo.userCardInfo;
+    const isNumeric = /^\d+$/.test(userCardInfo);
+
+    if (userCardInfo === "/start") {
+      ctx.scene.leave();
+      // ctx.session = {};
+      return ctx.reply(
+        `Assalomu Alaykum Botimizga Xush kelibsiz! Tilni tanlang:\n\nПривет и добро пожаловать в наш бот! Выберите язык:`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "🇷🇺 Русский язык", callback_data: "russian" }],
+              [{ text: "🇺🇿 O'zbekcha", callback_data: "uzbek" }],
+            ],
+          },
+        }
+      );
+    }
+    // /cancel
+    if (userCardInfo.length !== 16 || !isNumeric) {
+      console.log(userCardInfo);
+      delete ctx.wizard.state["cardInfo"]; // clear state to start over again
+      return ctx.reply(
+        user.lang == "uz" ? "Karta raqami xato" : "Неверный формат номера карты"
+        // user.lang == "uz" ? telKeyboardUz : telKeyboardRu
+      );
+    }
+
+    // another
+
+    let data = JSON.stringify({
+      card_number: userCardInfo,
+    });
+
+    if (!regtoken) {
+      return ctx.reply(
+        user.lang == "uz"
+          ? "Qaytadan ro'yxatdan o'ting /start"
+          : "Зарегистрируйтесь снова /start"
+      );
+    }
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "https://api.atmos.uz/out/1.0.0/asl/info",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${regtoken}`,
+      },
+      data: data,
+    };
+
+    try {
+      const response = await axios.request(config);
+      let info = response.data.data;
+      console.log(info);
+      if (info) {
+        ctx.reply(
+          user.lang == "uz"
+            ? `👤 Egasi: ${info.name}; \n 💳 Karta Raqami: ${info.pan}; \n 📞 Telefon Raqami: ${info.phone}; \n 🏦 Bank Nomi: ${info.bank_name}; \n 💳 Karta Turi: ${info.processing_type}`
+            : `👤 Владелец: ${info.name}; \n 💳 Номер карты: ${info.pan}; \n 📞  Номер телефона: ${info.phone}; \n 🏦 банк: ${info.bank_name}; \n 💳 Тип карты: ${info.processing_type}`
+        );
+        // ctx.wizard.state.cardInfo.card_id = response.data.data.id;
+      } else {
+        return ctx.reply(
+          user.lang == "uz"
+            ? "Siz kiritgan karta raqami mavjud emas iltimos qayta urunib ko'ring."
+            : "Введенный вами номер карты не существует. Повторите попытку",
+          keyboard
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      return ctx.reply(
+        user.lang == "uz"
+          ? "Siz kiritgan karta raqami mavjud emas iltimos qayta urunib ko'ring."
+          : "Введенный вами номер карты не существует. Повторите попытку",
+        keyboard
+      );
+    }
+    //wetga userCardInfo
+    addcard(ctx.from.id, userCardInfo);
+    ctx.reply(
+      user.lang ? "Xarita muvaffaqiyatli qo‘shildi" : "Карта успешно добавлена",
+      keyboard
+    );
+    return ctx.wizard.next();
+  }
+);
+const stage = new Scenes.Stage([contactData, wizardScene, CardScene]);
 // const stage = new Scenes.Stage([wizardScene, getSMSCodScene, getAll]);
 
 bot.use(session());
@@ -954,18 +1076,6 @@ bot.start(async (ctx) => {
   }
   ctx.scene.enter("CONTACT_DATA");
 });
-const warningWords = ["/start", "kirish", "aвторизоваться", "/help", "dev"]; // Taqiqlangan so'zlarning ro'yxati
-
-bot.on("text", (ctx) => {
-  const messageText = ctx.message?.text.toLowerCase();
-  if (!warningWords.includes(messageText)) {
-    ctx.reply(
-      user?.lang == "uz"
-        ? `Uzr, bu buyruqni tushunmayman, \n qayta /start bosing`
-        : `Извините, я не понимаю эту команду,\n Нажмите /start еще раз`
-    );
-  }
-});
 
 bot.action("russian", (ctx) => {
   if (user.lang) {
@@ -1034,24 +1144,41 @@ bot.action("cards", async (ctx) => {
     return;
   }
   let cards = await Card.find({ tg_id: ctx.from.id });
+  if (!cards) {
+    return;
+  }
+  // function btn(params) {
+  // const buttons = Array.from(cards, ([key, value]) => ({
+  //   text: value,
+  //   callback_data: key.toString(),
+  // }));
+  let rows = [];
   for (let i = 0; i < cards.length; i++) {
     const e = cards[i];
-    console.log(e);
+    console.log(e.numbers);
+    rows.push(e.numbers);
   }
+  let markup = rows.map((e) => {
+    return `${e}`;
+  });
+  console.log("markup", markup);
+  const buttons = [];
+  markup.forEach((option) => {
+    buttons.push(Markup.button.text(option));
+  });
+
   const card_buttons = Markup.keyboard([
-    
-    Markup.button.text("Yangi karta qoshish"),
+    ...buttons,
+    Markup.button.text("Yangi karta qo'shish"),
     Markup.button.text("ortga"),
   ])
     .oneTime()
     .resize()
     .selective();
-  // if (!cards) {
+
   ctx.reply("Mening kartalarim", card_buttons);
-  // }
-  // ctx.scene.enter("getCardInfo");
 });
-bot.action("new_cards", (ctx) => {
+bot.hears("Yangi karta qo'shish", (ctx) => {
   ctx.scene.enter("getCardInfo");
 });
 // bot.hears("Kirish", (ctx) => {
@@ -1061,6 +1188,18 @@ bot.action("new_cards", (ctx) => {
 //   ctx.scene.enter("CONTACT_DATA");
 // });
 //actions_
+const warningWords = ["/start", "kirish", "aвторизоваться", "/help", "dev"]; // Taqiqlangan so'zlarning ro'yxati
+
+bot.on("text", (ctx) => {
+  const messageText = ctx.message?.text.toLowerCase();
+  if (!warningWords.includes(messageText)) {
+    ctx.reply(
+      user?.lang == "uz"
+        ? `Uzr, bu buyruqni tushunmayman, \n qayta /start bosing`
+        : `Извините, я не понимаю эту команду,\n Нажмите /start еще раз`
+    );
+  }
+});
 
 bot.launch();
 console.log("Bot ishladi");
