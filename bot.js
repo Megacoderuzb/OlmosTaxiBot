@@ -63,7 +63,11 @@ const telKeyboardRu = Markup.keyboard([
   .selective();
 
 const telKeyboardUz = Markup.keyboard([
-  Markup.button.contactRequest("Telefon raqamingizni yuboring"),
+  Markup.button.contactRequest(
+    user?.lang == "uz"
+      ? "Telefon raqamingizni yuboring"
+      : "Отправьте номер телефона"
+  ),
 ])
   .oneTime()
   .resize()
@@ -149,9 +153,8 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   (ctx) => {
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    ctx.message.text === "ortga" ? ctx.scene.leave() : null;
+    ctx.message.text === "ortga" ? null : null;
     ctx.wizard.state.contactData.lang = ctx.message.text;
     let rozichilik = Markup.keyboard([
       Markup.button.text(
@@ -173,24 +176,51 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   (ctx) => {
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+        ctx.reply(
+          `Assalomu Alaykum Botimizga Xush kelibsiz! Tilni tanlang:\n\nПривет и добро пожаловать в наш бот! Выберите язык:`,
+          language
+        )
+      : null;
     if (ctx.message.text !== "Ha" && ctx.message.text !== "Да") {
       ctx.reply("Uzur biz siz bilan ishlay olmaymiz!");
       return;
     }
     ctx.reply(
       "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
-      telKeyboardUz
+      Markup.keyboard([
+        Markup.button.contactRequest(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Telefon raqamingizni yuboring"
+            : "Отправьте номер телефона"
+        ),
+      ])
+        .oneTime()
+        .resize()
+        .selective()
     );
     // ctx.wizard.state.contactData.lang = ctx.message.text;
     return ctx.wizard.next();
   },
   async (ctx) => {
-    if (ctx.message.text === "ortga" || ctx.message.text === "назад") {
-      ctx.scene.leave();
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+        ctx.reply(
+          "Oferta shartlariga rozimisiz: \n https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link",
+          Markup.keyboard([
+            Markup.button.text(
+              ctx.wizard.state.contactData.lang == "uz" ? "Ha" : "Да"
+            ),
+            Markup.button.text(
+              ctx.wizard.state.contactData.lang == "uz" ? "Yo'q" : "Нет"
+            ),
+          ])
+            .oneTime()
+            .resize()
+            .selective()
+        )
+      : null;
     function getRandomInt(min, max) {
       min = Math.ceil(min);
       max = Math.floor(max);
@@ -198,7 +228,7 @@ const contactData = new Scenes.WizardScene(
     }
 
     const randomNumber = getRandomInt(100000, 999999);
-    ctx.wizard.state.contactData.phone = ctx.message.contact.phone_number;
+    ctx.wizard.state.contactData.phone = ctx.message?.contact?.phone_number;
     ctx.wizard.state.contactData.code = randomNumber;
 
     console.log(ctx.wizard.state.contactData.phone);
@@ -243,9 +273,13 @@ const contactData = new Scenes.WizardScene(
   },
   async (ctx) => {
     // validation
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
+        ctx.reply(
+          "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
+          telKeyboardUz
+        )
+      : null;
 
     if (ctx.message.text * 1 === NaN) {
       ctx.reply("faqat raqamlarni kiriting");
@@ -280,6 +314,7 @@ const contactData = new Scenes.WizardScene(
         },
       };
 
+      let found = false;
       try {
         const response = await axios.post(url, data, { headers });
         const resData = response.data;
@@ -293,7 +328,6 @@ const contactData = new Scenes.WizardScene(
         const gapborovich = "+998940229020";
 
         async function topish(phoneNumber) {
-          let found = false;
           //
 
           //
@@ -328,8 +362,25 @@ const contactData = new Scenes.WizardScene(
           }
           if (!found) {
             // ctx.reply(`+${userPhoneNumber}`);
-            ctx.reply(
-              "Bunday foydalanuvchi topilmadi 🤷🏼‍♂️, qaytadan urinib ko'ring 🔄\n Пользователь не найден 🤷🏼‍♂️, попробуйте еще раз 🔄"
+            ctx.wizard.selectStep(ctx.wizard.cursor - 3);
+            // ctx.reply(
+            //   "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
+            //   telKeyboardUz
+            // );
+            return ctx.reply(
+              ctx.wizard.state.contactData.lang == "uz"
+                ? "Bunday foydalanuvchi topilmadi 🤷🏼‍♂️, qaytadan urinib ko'ring 🔄"
+                : "Пользователь не найден 🤷🏼‍♂️, попробуйте еще раз 🔄",
+              Markup.keyboard([
+                Markup.button.contactRequest(
+                  ctx.wizard.state.contactData.lang == "uz"
+                    ? "Telefon raqamingizni yuboring"
+                    : "Отправьте номер телефона"
+                ),
+              ])
+                .oneTime()
+                .resize()
+                .selective()
             );
           }
         }
@@ -355,14 +406,18 @@ const contactData = new Scenes.WizardScene(
       }
       ///
 
-      let passtypes = Markup.keyboard([
-        Markup.button.text("id"),
-        Markup.button.text("biometrik"),
-      ])
-        .oneTime()
-        .resize()
-        .selective();
-      ctx.reply("passport turi", passtypes);
+      found
+        ? ctx.reply(
+            "passport turi",
+            Markup.keyboard([
+              Markup.button.text("id"),
+              Markup.button.text("biometrik"),
+            ])
+              .oneTime()
+              .resize()
+              .selective()
+          )
+        : null;
 
       ctx.wizard.next();
     }
@@ -371,9 +426,9 @@ const contactData = new Scenes.WizardScene(
 
   (ctx) => {
     console.log(ctx.message.text, "passportturi");
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    // ctx.message.text === "ortga"
+    //   ? ctx.wizard.selectStep(ctx.wizard.cursor - 2)
+    //   : null;
     if (ctx.message.text !== "id" || ctx.message.text !== "biometrik") {
       ctx.reply("bunaqa variant yoq");
       return;
@@ -385,55 +440,81 @@ const contactData = new Scenes.WizardScene(
   },
   (ctx) => {
     console.log(ctx.message.text, "passportturi");
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    // ctx.message.text === "ortga"
+    //   ? ctx.wizard.selectStep(ctx.wizard.cursor - 2)
+    //   : null;
 
     ctx.wizard.state.contactData.passtype = ctx.message.text;
-    let buttons = Markup.keyboard([
-      Markup.button.text("ha"),
-      Markup.button.text("yo'q"),
-    ])
-      .oneTime()
-      .resize()
-      .selective();
-    ctx.reply("samozanyatemi", buttons);
+    // let buttons = ;
+    ctx.reply(
+      "samozanyatemi",
+      Markup.keyboard([Markup.button.text("ha"), Markup.button.text("yo'q")])
+        .oneTime()
+        .resize()
+        .selective()
+    );
     console.log(ctx.wizard.state.contactData.passtype, "bu passtype");
     return ctx.wizard.next();
   },
   (ctx) => {
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+        ctx.reply(
+          "passport turi",
+          Markup.keyboard([
+            Markup.button.text("id"),
+            Markup.button.text("biometrik"),
+          ])
+            .oneTime()
+            .resize()
+            .selective()
+        )
+      : null;
     ctx.reply("passport seria raqamini kiriting lotincada");
     ctx.wizard.state.contactData.samozanyate = ctx.message.text;
     console.log(ctx.message.text, "bu samozanyate");
     return ctx.wizard.next();
   },
   (ctx) => {
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+        ctx.reply(
+          "samozanyatemi",
+          Markup.keyboard([
+            Markup.button.text("ha"),
+            Markup.button.text("yo'q"),
+          ])
+            .oneTime()
+            .resize()
+            .selective()
+        )
+      : null;
     ctx.reply("pnflni kirgiz");
     ctx.wizard.state.contactData.passportSeria = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   (ctx) => {
-    if (ctx.message.text === "ortga") {
-      ctx.wizard.selectStep(ctx.wizard.cursor - 1);
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+        ctx.reply("passport seria raqamini kiriting lotincada")
+      : null;
+
     ctx.reply("tugilgan kuningiz");
     ctx.wizard.state.contactData.pnfl = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   (ctx) => {
-    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
-      ctx.scene.leave();
-      // ctx.wizard.back();
-      // return;
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+        ctx.reply("pnflni kirgiz")
+      : null;
+    // if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+    //   ctx.scene.leave();
+    // }
+    // ctx.wizard.back();
+    // return;
     // ctx.wizard.back();
     ctx.reply("passportni rasmini yuklang");
     ctx.wizard.state.contactData.birthday = ctx.message.text;
@@ -441,9 +522,10 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   async (ctx) => {
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+        ctx.reply("tugilgan kuningiz")
+      : null;
     const photo = ctx.message.photo;
     console.log("this is photos", photo);
 
@@ -482,9 +564,10 @@ const contactData = new Scenes.WizardScene(
   },
 
   async (ctx) => {
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
-    }
+    ctx.message.text === "ortga"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+        ctx.reply("passportni rasmini yuklang")
+      : null;
     const photo = ctx.message.photo;
     console.log("this is photos", photo);
 
