@@ -36,6 +36,7 @@ async function addcard(tg_id, numbers) {
 let user;
 let yandexData;
 let user_balance;
+let myBalance;
 const adminChatId = "5033207519";
 // console.log(process.env.BOT_TOKEN);
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -47,7 +48,9 @@ const language = Markup.keyboard([
   .oneTime()
   .resize()
   .selective();
-const keyboard = Markup.keyboard([Markup.button.callback("/start ", isUtf8)])
+const keyboard = Markup.keyboard([
+  Markup.button.callback(user?.lang == "uz" ? "ortga" : "назат ", isUtf8),
+])
   .oneTime()
   .resize()
   .selective();
@@ -113,7 +116,7 @@ bot.command("lang", (ctx) => {
 
 bot.command("help", (ctx) => {
   ctx.reply(
-    user.lang == "uz"
+    user?.lang == "uz"
       ? `/start - Botni qayta ishga tushurish , \n/lang - Tilni alishtirish \n/help - Yordam .`
       : "/start - Перезапустить бота, \n/lang - Сменить язык,\n/help - Справка"
   );
@@ -151,8 +154,12 @@ const contactData = new Scenes.WizardScene(
     }
     ctx.wizard.state.contactData.lang = ctx.message.text;
     let rozichilik = Markup.keyboard([
-      Markup.button.text("ha"),
-      Markup.button.text("yo'q"),
+      Markup.button.text(
+        ctx.wizard.state.contactData.lang == "uz" ? "Ha" : "Да"
+      ),
+      Markup.button.text(
+        ctx.wizard.state.contactData.lang == "uz" ? "Yo'q" : "Нет"
+      ),
     ])
       .oneTime()
       .resize()
@@ -169,8 +176,8 @@ const contactData = new Scenes.WizardScene(
     if (ctx.message.text === "/start") {
       ctx.scene.leave();
     }
-    if (ctx.message.text !== "ha") {
-      ctx.reply("Unda uzur biz siz bilan ishlay olmaymiz");
+    if (ctx.message.text !== "Ha" && ctx.message.text !== "Да") {
+      ctx.reply("Uzur biz siz bilan ishlay olmaymiz!");
       return;
     }
     ctx.reply(
@@ -181,7 +188,7 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   async (ctx) => {
-    if (ctx.message.text === "/start") {
+    if (ctx.message.text === "ortga" || ctx.message.text === "назад") {
       ctx.scene.leave();
     }
     function getRandomInt(min, max) {
@@ -215,7 +222,7 @@ const contactData = new Scenes.WizardScene(
     //   .then((response) => {
     //     console.log(response.data);
     //     ctx.reply(
-    //       user.lang == "uz"
+    //       ctx.wizard.state.contactData.lang == "uz"
     //         ? "Yuborgan telefon raqamingizga kelgan kodni kiriting: "
     //         : "Введите код, пришедший на отправленный вами номер телефона:",
     //       keyboard
@@ -224,7 +231,7 @@ const contactData = new Scenes.WizardScene(
     //   .catch((error) => {
     //     console.error(error);
     //     ctx.reply(
-    //       user.lang == "uz"
+    //       ctx.wizard.state.contactData.lang == "uz"
     //         ? `SMS yuborilmadi. Siz ko´p marotaba urindingiz, keyinroq urinib koring `
     //         : "СМС не отправлено. Вы пытались сделать это слишком много раз, повторите попытку позже.",
     //       keyboard
@@ -282,8 +289,8 @@ const contactData = new Scenes.WizardScene(
 
         // const luqmonovich = "+998990222228";
         // const ahmadjonovich = "+998935206680";
-        const gapborovich = "+998940229020";
         // const yaroqsizNomer = "+998904024707";
+        const gapborovich = "+998940229020";
 
         async function topish(phoneNumber) {
           let found = false;
@@ -341,7 +348,7 @@ const contactData = new Scenes.WizardScene(
         console.error(error);
         // Stop
         ctx.reply(
-          user.lang == "uz"
+          ctx.wizard.state.contactData.lang == "uz"
             ? "Xatolik yuz berdi: " + error.message
             : "Произошла ошибка: " + error.message
         );
@@ -413,8 +420,8 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   (ctx) => {
-    if (ctx.message.text === "/start") {
-      ctx.scene.leave();
+    if (ctx.message.text === "ortga") {
+      ctx.wizard.selectStep(ctx.wizard.cursor - 1);
     }
     ctx.reply("tugilgan kuningiz");
     ctx.wizard.state.contactData.pnfl = ctx.message.text;
@@ -554,13 +561,13 @@ const contactData = new Scenes.WizardScene(
   }
 );
 contactData.action("russian", (ctx) => {
-  if (user.lang) {
-    user.lang = "ru";
+  if (ctx.wizard.state.contactData.lang) {
+    ctx.wizard.state.contactData.lang = "ru";
     ctx.reply("Язык успешно измененo!✅");
     return;
   }
 
-  user.lang = "ru";
+  ctx.wizard.state.contactData.lang = "ru";
   ctx.reply(
     "Язык выбран успешно! ✅\nДля регистрации отправьте свой номер с помощью кнопки ниже и подтвердите с помощью смс-уведомления.🤝",
     telKeyboardRu
@@ -610,7 +617,7 @@ bot.action(/(approve|cancel)_/, async (ctx) => {
     console.log(deleted);
     ctx.reply("Bekor qilindi ❌");
     ctx.telegram.sendMessage(
-      updated.tg_id,
+      deleted.tg_id,
       "Sizning So'rovingiz Bekor qilindi ❌"
     );
     // Buttonni bekor qilish
@@ -619,13 +626,13 @@ bot.action(/(approve|cancel)_/, async (ctx) => {
   ctx.answerCbQuery();
 });
 // contactData.action("uzbek", (ctx) => {
-//   if (user.lang) {
-//     user.lang = "uz";
+//   if (user?.lang) {
+//     user?.lang = "uz";
 //     ctx.reply("Til muvaffaqiyatli o'zgartirildi!✅");
 //     return;
 //   }
 //   // console.log(ctx.wizard.state.contactData.code);
-//   user.lang = "uz";
+//   user?.lang = "uz";
 //   let file = fs.readFileSync(
 //     path.join(__dirname + "/ofertauz/MOLDE_Caja Huevo de Dinosaurio.pdf")
 //   );
@@ -646,13 +653,45 @@ bot.action(/(approve|cancel)_/, async (ctx) => {
 //   .selective();
 const wizardScene = new Scenes.WizardScene(
   "getCardInfo",
-  (ctx) => {
-    console.log(user.lang);
+  async (ctx) => {
+    console.log(user?.lang);
+
+    if (!user) {
+      return;
+    }
+    let cards = await Card.find({ tg_id: user.tg_id });
+    if (!cards) {
+      return;
+    }
+    let rows = [];
+    for (let i = 0; i < cards.length; i++) {
+      const e = cards[i];
+      console.log(e.numbers);
+      rows.push(e.numbers);
+    }
+    let markup = rows.map((e) => {
+      return `${e}`;
+    });
+    console.log("markup", markup);
+    const buttons = [];
+    markup.forEach((option) => {
+      buttons.push(Markup.button.text(option));
+    });
+
+    const card_buttons = Markup.keyboard([
+      ...buttons,
+      // Markup.button.text("Yangi karta qo'shish"),
+      Markup.button.text("ortga"),
+    ])
+      .oneTime()
+      .resize()
+      .selective();
+
     ctx.reply(
-      user.lang == "uz"
-        ? "Iltimos karta raqamini kiriting"
-        : "Пожалуйста, введите номер карты",
-      keyboard
+      user?.lang == "uz"
+        ? "Iltimos karta raqamini kiriting yoki tanlang 👇"
+        : "Пожалуйста, введите или выберите номер карты 👇",
+      card_buttons
     );
     return ctx.wizard.next();
     // Stop
@@ -670,27 +709,16 @@ const wizardScene = new Scenes.WizardScene(
     const isNumeric = /^\d+$/.test(userCardInfo);
 
     if (userCardInfo === "/start") {
-      ctx.scene.leave();
-      // ctx.session = {};
-      return ctx.reply(
-        `Assalomu Alaykum Botimizga Xush kelibsiz! Tilni tanlang:\n\nПривет и добро пожаловать в наш бот! Выберите язык:`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "🇷🇺 Русский язык", callback_data: "russian" }],
-              [{ text: "🇺🇿 O'zbekcha", callback_data: "uzbek" }],
-            ],
-          },
-        }
-      );
     }
     // /cancel
     if (userCardInfo.length !== 16 || !isNumeric) {
       console.log(userCardInfo);
       delete ctx.wizard.state["cardInfo"]; // clear state to start over again
       return ctx.reply(
-        user.lang == "uz" ? "Karta raqami xato" : "Неверный формат номера карты"
-        // user.lang == "uz" ? telKeyboardUz : telKeyboardRu
+        user?.lang == "uz"
+          ? "Karta raqami xato"
+          : "Неверный формат номера карты"
+        // user?.lang == "uz" ? telKeyboardUz : telKeyboardRu
       );
     }
 
@@ -702,7 +730,7 @@ const wizardScene = new Scenes.WizardScene(
 
     if (!regtoken) {
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? "Qaytadan ro'yxatdan o'ting /start"
           : "Зарегистрируйтесь снова /start"
       );
@@ -725,14 +753,14 @@ const wizardScene = new Scenes.WizardScene(
       console.log(info);
       if (info) {
         ctx.reply(
-          user.lang == "uz"
+          user?.lang == "uz"
             ? `👤 Egasi: ${info.name}; \n 💳 Karta Raqami: ${info.pan}; \n 📞 Telefon Raqami: ${info.phone}; \n 🏦 Bank Nomi: ${info.bank_name}; \n 💳 Karta Turi: ${info.processing_type}`
             : `👤 Владелец: ${info.name}; \n 💳 Номер карты: ${info.pan}; \n 📞  Номер телефона: ${info.phone}; \n 🏦 банк: ${info.bank_name}; \n 💳 Тип карты: ${info.processing_type}`
         );
         ctx.wizard.state.cardInfo.card_id = response.data.data.id;
       } else {
         return ctx.reply(
-          user.lang == "uz"
+          user?.lang == "uz"
             ? "Siz kiritgan karta raqami mavjud emas iltimos qayta urunib ko'ring."
             : "Введенный вами номер карты не существует. Повторите попытку",
           keyboard
@@ -741,7 +769,7 @@ const wizardScene = new Scenes.WizardScene(
     } catch (error) {
       console.log(error);
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? "Siz kiritgan karta raqami mavjud emas iltimos qayta urunib ko'ring."
           : "Введенный вами номер карты не существует. Повторите попытку",
         keyboard
@@ -749,7 +777,7 @@ const wizardScene = new Scenes.WizardScene(
     }
 
     ctx.reply(
-      user.lang
+      user?.lang
         ? "Endi o'tkazma summasini kiriting"
         : "Теперь введите сумму перевода",
       keyboard
@@ -760,35 +788,25 @@ const wizardScene = new Scenes.WizardScene(
     // const regtoken = ctx.session.regToken;
     const amountMoney = ctx.message?.text;
     ctx.session.amountMoney = amountMoney;
-
-    const yandexBalance = ctx.session?.balance;
-
+    ctx.wizard.state.cardInfo.amountMoney = ctx.message?.text;
+    const yandexBalance = yandexData.accounts[0].balance;
+    console.log(yandexBalance, "yb");
     if (amountMoney === "/start") {
       ctx.scene.leave();
       // return ctx.reply(
       // ctx.session = {};
-      return ctx.reply(
-        `Assalomu Alaykum Botimizga Xush kelibsiz! Tilni tanlang:\n\nПривет и добро пожаловать в наш бот! Выберите язык:`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "🇷🇺 Русский язык", callback_data: "russian" }],
-              [{ text: "🇺🇿 O'zbekcha", callback_data: "uzbek" }],
-            ],
-          },
-        }
-      );
+
       // );
     }
     if (amountMoney > yandexBalance) {
       // ctx.scene.leave();
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? ` Siz bu summani yecha olmaysiz! Sizning hisobingizda ${Math.trunc(
-              user.balance
+              user_balance
             )} UZS mablag' bor `
           : ` Вы не можете снять эту сумму! У вас на счету ${Math.trunc(
-              user.balance
+              user_balance
             )} сум `
       );
     }
@@ -796,7 +814,7 @@ const wizardScene = new Scenes.WizardScene(
     if (isNaN(amountMoney)) {
       console.log("Harflar yozmang faqat son kiriting");
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? "Harflar yozmang faqat son kiriting"
           : "Не пишите буквы, только цифры",
         keyboard
@@ -805,7 +823,7 @@ const wizardScene = new Scenes.WizardScene(
 
     if (yandexBalance <= 0) {
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? "Siz pul yecha olmaysiz !"
           : "Вы не можете снять деньги !",
         keyboard
@@ -814,7 +832,7 @@ const wizardScene = new Scenes.WizardScene(
 
     if (amountMoney < 1000) {
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? "O'tkazma miqdori juda kam. Minimal o'tkazma 1000 so'm, kamida 1000 so'm yechmoqchisiz."
           : "Сумма перевода слишком маленькая. Минимальная сумма перевода 1000 сум, можно снять не менее 1000 сум.",
         keyboard
@@ -823,7 +841,7 @@ const wizardScene = new Scenes.WizardScene(
 
     if (!regtoken) {
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? "Qaytadan ro'yxatdan o'ting"
           : "Зарегистрируйтесь снова"
       );
@@ -853,13 +871,13 @@ const wizardScene = new Scenes.WizardScene(
       .then((response) => {
         console.log(JSON.stringify(response.data));
         const tranzactionId = response.data.data.transaction_id;
-        // ctx.session.tranzactionId = tranzactionId;
+        ctx.session.tranzactionId = tranzactionId;
         ctx.wizard.state.cardInfo.transaction_id = response.data.transaction_id;
       })
       .catch((error) => {
         console.log(error);
 
-        // return (user.lang = "uz"
+        // return (user?.lang = "uz"
         //   ? "Tranzaksiya yaratilmadi Tranzaksiya yaraatishda xatolik "
         //   : "Tranzaksiya yaratilmadi Tranzaksiya yaraatishda xatolik ");
 
@@ -867,7 +885,7 @@ const wizardScene = new Scenes.WizardScene(
       });
 
     ctx.reply(
-      user.lang == "uz"
+      user?.lang == "uz"
         ? `Siz ${ctx.wizard.state.cardInfo.userCardInfo} ga ${amountMoney} so'm yechmoqchisiz, Ma'lumotlar to'g'riligini tasdiqlang`
         : `Вы хотите вывести ${ctx.wizard.state.cardInfo.userCardInfo} на ${amountMoney} сум, пожалуйста, подтвердите правильность информации`,
 
@@ -889,9 +907,9 @@ const wizardScene = new Scenes.WizardScene(
 const CardScene = new Scenes.WizardScene(
   "add_card",
   (ctx) => {
-    console.log(user.lang);
+    console.log(user?.lang);
     ctx.reply(
-      user.lang == "uz"
+      user?.lang == "uz"
         ? "Iltimos karta raqamini kiriting"
         : "Пожалуйста, введите номер карты",
       keyboard
@@ -931,8 +949,10 @@ const CardScene = new Scenes.WizardScene(
       console.log(userCardInfo);
       delete ctx.wizard.state["cardInfo"]; // clear state to start over again
       return ctx.reply(
-        user.lang == "uz" ? "Karta raqami xato" : "Неверный формат номера карты"
-        // user.lang == "uz" ? telKeyboardUz : telKeyboardRu
+        user?.lang == "uz"
+          ? "Karta raqami xato"
+          : "Неверный формат номера карты"
+        // user?.lang == "uz" ? telKeyboardUz : telKeyboardRu
       );
     }
 
@@ -944,7 +964,7 @@ const CardScene = new Scenes.WizardScene(
 
     if (!regtoken) {
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? "Qaytadan ro'yxatdan o'ting /start"
           : "Зарегистрируйтесь снова /start"
       );
@@ -967,14 +987,14 @@ const CardScene = new Scenes.WizardScene(
       console.log(info);
       if (info) {
         ctx.reply(
-          user.lang == "uz"
+          user?.lang == "uz"
             ? `👤 Egasi: ${info.name}; \n 💳 Karta Raqami: ${info.pan}; \n 📞 Telefon Raqami: ${info.phone}; \n 🏦 Bank Nomi: ${info.bank_name}; \n 💳 Karta Turi: ${info.processing_type}`
             : `👤 Владелец: ${info.name}; \n 💳 Номер карты: ${info.pan}; \n 📞  Номер телефона: ${info.phone}; \n 🏦 банк: ${info.bank_name}; \n 💳 Тип карты: ${info.processing_type}`
         );
         // ctx.wizard.state.cardInfo.card_id = response.data.data.id;
       } else {
         return ctx.reply(
-          user.lang == "uz"
+          user?.lang == "uz"
             ? "Siz kiritgan karta raqami mavjud emas iltimos qayta urunib ko'ring."
             : "Введенный вами номер карты не существует. Повторите попытку",
           keyboard
@@ -983,7 +1003,7 @@ const CardScene = new Scenes.WizardScene(
     } catch (error) {
       console.log(error);
       return ctx.reply(
-        user.lang == "uz"
+        user?.lang == "uz"
           ? "Siz kiritgan karta raqami mavjud emas iltimos qayta urunib ko'ring."
           : "Введенный вами номер карты не существует. Повторите попытку",
         keyboard
@@ -992,13 +1012,242 @@ const CardScene = new Scenes.WizardScene(
     //wetga userCardInfo
     addcard(ctx.from.id, userCardInfo);
     ctx.reply(
-      user.lang ? "Xarita muvaffaqiyatli qo‘shildi" : "Карта успешно добавлена",
+      user?.lang == "uz"
+        ? "Karta muvaffaqiyatli qo‘shildi"
+        : "Карта успешно добавлена",
       keyboard
     );
     return ctx.wizard.next();
   }
 );
-const stage = new Scenes.Stage([contactData, wizardScene, CardScene]);
+
+const getAll = new Scenes.WizardScene(
+  "getAllMyBalance",
+  async (ctx) => {
+    const keyboard = Markup.keyboard([
+      Markup.button.callback(user?.lang == "uz" ? "ortga" : "назат ", isUtf8),
+    ])
+      .oneTime()
+      .resize()
+      .selective();
+    if (!user) {
+      return;
+    }
+    let cards = await Card.find({ tg_id: user.tg_id });
+    if (!cards) {
+      return;
+    }
+    let rows = [];
+    for (let i = 0; i < cards.length; i++) {
+      const e = cards[i];
+      console.log(e.numbers);
+      rows.push(e.numbers);
+    }
+    let markup = rows.map((e) => {
+      return `${e}`;
+    });
+    console.log("markup", markup);
+    const buttons = [];
+    markup.forEach((option) => {
+      buttons.push(Markup.button.text(option));
+    });
+
+    const card_buttons = Markup.keyboard([
+      ...buttons,
+      // Markup.button.text("Yangi karta qo'shish"),
+      Markup.button.text("ortga"),
+    ])
+      .oneTime()
+      .resize()
+      .selective();
+
+    ctx.reply(
+      user?.lang == "uz"
+        ? "Iltimos karta raqamini kiriting yoki tanlang 👇"
+        : "Пожалуйста, введите или выберите номер карты 👇",
+      card_buttons
+    );
+    return ctx.wizard.next();
+  },
+  async (ctx) => {
+    ctx.wizard.state.cardInfo = {};
+    ctx.wizard.state.cardInfo.userCardInfo = ctx.message?.text;
+    console.log(ctx.wizard.state.cardInfo.userCardInfo);
+    const userCardInfo = ctx.wizard.state.cardInfo.userCardInfo;
+
+    const regToken = regtoken;
+    const isNumeric = /^\d+$/.test(userCardInfo);
+
+    if (userCardInfo === "/start") {
+      ctx.scene.leave();
+      ctx.session = {};
+      return ctx.reply(
+        `Assalomu Alaykum Botimizga Xush kelibsiz! Tilni tanlang:\n\nПривет и добро пожаловать в наш бот! Выберите язык:`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "🇷🇺 Русский язык", callback_data: "russian" }],
+              [{ text: "🇺🇿 O'zbekcha", callback_data: "uzbek" }],
+            ],
+          },
+        }
+      );
+    }
+
+    if (userCardInfo.length !== 16 && !isNumeric) {
+      return ctx.reply(
+        user?.lang == "uz"
+          ? "Karta raqami Xato "
+          : "Неверный формат номера карты"
+      );
+      // delete ctx.wizard.state["cardInfo"]; // clear state to start over again
+      // return ctx.scene.leave();
+    } else {
+      let data = JSON.stringify({
+        card_number: `${ctx.wizard.state.cardInfo?.userCardInfo}`,
+      });
+
+      if (!regToken) {
+        ctx.reply(
+          user?.lang == "uz"
+            ? "Qaytadan ro´yhatdan o'ting"
+            : "Зарегистрируйтесь снова"
+        );
+      } else {
+        let config = {
+          method: "post",
+          maxBodyLength: Infinity,
+          url: "https://api.atmos.uz/out/1.0.0/asl/info",
+          headers: {
+            "Content-Type": "application/json",
+            // Authorization: `Bearer `
+            Authorization: `Bearer ${regToken}`,
+          },
+          data: data,
+        };
+
+        await axios
+          .request(config)
+          .then((response) => {
+            let info = response.data.data;
+            console.log(info);
+            ctx.reply(
+              user?.lang == "uz"
+                ? `👤 Egasi: ${info.name}; \n 💳 Karta Raqami: ${info.pan}; \n 📞 Telefon Raqami: ${info.phone}; \n 🏦 Bank Nomi: ${info.bank_name}; \n 💳 Karta Turi: ${info.processing_type}`
+                : `👤 Владелец: ${info.name}; \n 💳 Номер карты: ${info.pan}; \n 📞  Номер телефона: ${info.phone}; \n 🏦 банк: ${info.bank_name}; \n 💳 Тип карты: ${info.processing_type}`
+            );
+            ctx.wizard.state.cardInfo.card_id = info.id;
+          })
+          .catch((error) => {
+            // ctx.reply(error);
+            console.log(error);
+          });
+
+        let myBalance = yandexData.accounts[0].balance;
+        console.log(myBalance, "mybalance");
+        const yandexBalance = user_balance;
+        if (yandexBalance[0] == "-") {
+          ctx.reply(
+            user?.lang == "uz"
+              ? "Siz pul yecha olmaysiz sababi qarzsiz !"
+              : "Вы не можете снять деньги, потому что вы в долгах !"
+          );
+          ctx.scene.leave();
+        } else if (myBalance) {
+          if (yandexBalance <= 0) {
+            return ctx.reply(
+              user?.lang == "uz"
+                ? "Siz pul yecha olmaysiz ! Balansingizda pul kam"
+                : "Вы не можете снять деньги !"
+            );
+          } else if (yandexBalance[0] != "-") {
+            let balance = myBalance;
+
+            if (balance < "1000") {
+              ctx.reply(
+                user?.lang == "uz"
+                  ? "O´tkazma miqdori noto'g'ri yoki juda kam minimal o'tkazma 1000 so'm kamida 1000 so'm yecha olasiz. "
+                  : "Сумма перевода очень маленькая, минимальная сумма перевода 1000 сум, снять можно не менее 1000 сум."
+              );
+            } else {
+              // ctx.wizard.state.getAmountInfo = getAmountInfo;
+              console.log(
+                ctx.session.myBalance,
+                ctx.wizard.state.cardInfo.card_id
+              );
+
+              let data = JSON.stringify({
+                card_id: ctx.wizard.state.cardInfo.card_id,
+                amount: new Number((balance - 20000.0) * 100),
+                ext_id: `${Date.now()}`,
+              });
+              console.log(JSON.stringify(data));
+              let config = {
+                method: "post",
+                maxBodyLength: Infinity,
+                url: "https://api.atmos.uz/out/1.0.0/asl/create",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${regToken}`,
+                },
+                data: data,
+              };
+
+              await axios
+                .request(config)
+                .then((response) => {
+                  console.log(JSON.stringify(response.data));
+                  // ctx.reply(JSON.stringify(response.data));
+                  const tranzactionId = response.data.data.transaction_id;
+                  ctx.session.tranzactionId = tranzactionId;
+
+                  ctx.wizard.state.cardInfo.transaction_id =
+                    response.data.transaction_id;
+                })
+
+                .catch((error) => {
+                  console.log(error);
+                  ctx.reply(error.message);
+                });
+            }
+            ctx.reply(
+              user?.lang == "uz"
+                ? `Siz ${
+                    ctx.wizard.state.cardInfo.userCardInfo
+                  } ga ${Math.trunc(
+                    myBalance - 20000.0
+                  )} so´m yechmoqchisiz , Ma´lumotlar togriligini tasdiqlang`
+                : `Вы хотите вывести ${
+                    ctx.wizard.state.cardInfo.userCardInfo
+                  } на ${Math.trunc(
+                    myBalance - 20000.0
+                  )}, пожалуйста, подтвердите правильность информации`,
+              {
+                reply_markup: {
+                  inline_keyboard: [
+                    [{ text: "❌", callback_data: "reject" }],
+                    [{ text: "✅", callback_data: "apply" }],
+                  ],
+                },
+              }
+
+              //
+            );
+
+            // bot.command("cancel", (ctx) => {
+            //   ctx.reply(`Scenedan chiqdim `);
+            //   return ctx.scene.leave("getAllMyBalance");
+            // });
+
+            return ctx.scene.leave();
+          }
+        }
+      }
+    }
+  }
+);
+
+const stage = new Scenes.Stage([contactData, wizardScene, CardScene, getAll]);
 // const stage = new Scenes.Stage([wizardScene, getSMSCodScene, getAll]);
 
 bot.use(session());
@@ -1078,7 +1327,7 @@ bot.start(async (ctx) => {
 });
 
 bot.action("russian", (ctx) => {
-  if (user.lang) {
+  if (user?.lang) {
     User.findByIdAndUpdate(user._id, { lang: "ru" }, { new: true })
       .then((data) => {
         ctx.reply("Язык успешно измененo!✅");
@@ -1087,7 +1336,7 @@ bot.action("russian", (ctx) => {
       .catch((err) => {
         console.log("error", err);
       });
-    // user.lang = "ru";
+    // user?.lang = "ru";
     return;
   }
 
@@ -1101,11 +1350,11 @@ bot.action("russian", (ctx) => {
       console.log("error", err);
       ctx.reply("xatolik! qayta urunib koring.");
     });
-  // user.lang = "ru";
+  // user?.lang = "ru";
 });
 
 bot.action("uzbek", (ctx) => {
-  if (user.lang) {
+  if (user?.lang) {
     User.findByIdAndUpdate(user._id, { lang: "uz" }, { new: true })
       .then((data) => {
         ctx.reply("Til muvaffaqiyatli o'zgartirildi!✅");
@@ -1114,7 +1363,7 @@ bot.action("uzbek", (ctx) => {
       .catch((err) => {
         console.log("error", err);
       });
-    // user.lang = "uz";
+    // user?.lang = "uz";
     return;
   }
 
@@ -1139,6 +1388,128 @@ bot.action("lang", (ctx) => {
     },
   });
 });
+bot.action("balance", async (ctx) => {
+  const clientId = "taxi/park/b756b1c971a64253b201829adcedf3ea";
+  const apiKey = "QCqYmRRKAtzWdhrjqYnRllvsYAFtDYBQh";
+  const partnerId = "b756b1c971a64253b201829adcedf3ea";
+
+  const url = "https://fleet-api.taxi.yandex.net/v1/parks/driver-profiles/list";
+  const headers = {
+    "X-Client-ID": clientId,
+    "X-Api-Key": apiKey,
+  };
+
+  const data = {
+    query: {
+      park: {
+        id: partnerId,
+      },
+    },
+  };
+  const response = await axios.post(url, data, { headers });
+  const resData = response.data;
+  const gapborovich = "+998940229020";
+  console.log(resData, "RESDATA");
+  async function topish(phoneNumber) {
+    let found = false;
+    // console.log(user);
+    // console.log(yandexData);
+    for (let i = 0; i < resData.driver_profiles.length; i++) {
+      if (
+        resData.driver_profiles[i].driver_profile.phones.includes(phoneNumber)
+      ) {
+        yandexData = resData.driver_profiles[i];
+        console.log(yandexData, "yandexdata");
+        // console.log(user.driver_profile);
+        // const yandexUserId = user.driver_profile.id;
+        // ctx.session.yandexUserId = yandexUserId;
+        // ctx.session.driverFirstName = user.driver_profile.first_name;
+        // ctx.session.driverLastName = user.driver_profile.last_name;
+        // ctx.session.driverMiddleName = user.driver_profile.middle_name;
+
+        user_balance =
+          yandexData.accounts[0].balance >= 20000.0
+            ? yandexData.accounts[0].balance - 20000.0
+            : 0;
+
+        // ctx.reply(`${userPhoneNumber}`);
+        let myBalance = yandexData.accounts[0].balance;
+        console.log(myBalance);
+        // ctx.reply(`Tilni tanlang:\n\nВыберите язык:`);
+        found = true;
+        ctx.reply(
+          user?.lang == "uz"
+            ? `📝 ${yandexData.driver_profile.first_name} ${
+                yandexData.driver_profile.middle_name
+              } ${
+                yandexData.driver_profile.last_name
+              } siz tizimga muvaffaqiyatli kirdingiz. \n 💰 Sizni hisobingizda ${Math.trunc(
+                yandexData.accounts[0].balance
+              )} ${
+                yandexData.accounts[0].currency
+              } mavjud \n 🏦 Eslatma balansda 20000.0 ${
+                yandexData.accounts[0].currency
+              } qolishi kerak \n\n Siz ${Math.trunc(
+                yandexData.accounts[0].balance - 20000.0
+              )}  ${
+                yandexData.accounts[0].currency
+              } yecha olasiz \n Yechish uchun pastdagi tugmalardan foydalaning `
+            : `📝 ${yandexData.driver_profile.first_name} ${
+                yandexData.driver_profile.middle_name
+              } ${
+                yandexData.driver_profile.last_name
+              } вы успешно вошли в систему. \n 💰 На балансе существует ${Math.trunc(
+                yandexData.accounts[0].balance
+              )} ${
+                yandexData.accounts[0].currency
+              } \n 🏦 Обратите внимание на балансe 20000.0 ${
+                yandexData.accounts[0].currency
+              } должен остаться \n\n ${Math.trunc(
+                yandexData.accounts[0].balance - 20000.0
+              )} ${
+                yandexData.accounts[0].currency
+              } можете снять \n Используйте кнопки ниже, чтобы снять `,
+
+          {
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: `${Math.trunc(
+                      yandexData.accounts[0].balance - 20000.0
+                    )}  ${yandexData.accounts[0].currency} `,
+                    callback_data: "getall",
+                  },
+                ],
+                [{ text: `✍️ `, callback_data: "another" }],
+              ],
+            },
+          }
+        );
+
+        break;
+      }
+    }
+    if (!found) {
+      // ctx.reply(`+${userPhoneNumber}`);
+      ctx.reply(
+        user?.lang == "uz"
+          ? "Bunday foydalanuvchi topilmadi 🤷🏼‍♂️, qaytadan urinib ko'ring 🔄"
+          : "Пользователь не найден 🤷🏼‍♂️, попробуйте еще раз 🔄"
+      );
+    }
+  }
+  // const userPhoneNumber = ctx.session.userPhoneNumber;
+
+  // console.log(ctx.wizard.state.contactData.phone);
+  // topish(`${ctx.wizard.state.contactData.phone}`);
+
+  topish(gapborovich);
+  // console.log(yandexData);
+});
+bot.action("getall", async (ctx) => {
+  ctx.scene.enter("getAllMyBalance");
+});
 bot.action("cards", async (ctx) => {
   if (!user) {
     return;
@@ -1147,11 +1518,6 @@ bot.action("cards", async (ctx) => {
   if (!cards) {
     return;
   }
-  // function btn(params) {
-  // const buttons = Array.from(cards, ([key, value]) => ({
-  //   text: value,
-  //   callback_data: key.toString(),
-  // }));
   let rows = [];
   for (let i = 0; i < cards.length; i++) {
     const e = cards[i];
@@ -1181,12 +1547,114 @@ bot.action("cards", async (ctx) => {
 bot.hears("Yangi karta qo'shish", (ctx) => {
   ctx.scene.enter("add_card");
 });
-// bot.hears("Kirish", (ctx) => {
-//   console.log("hear qildi");
-//   //   await ctx.scene.enter("CONTACT_DATA");
-//   //   contactData.enter((ctx) => {});
-//   ctx.scene.enter("CONTACT_DATA");
-// });
+bot.action("getall", (ctx) => {
+  // ctx.scene.leave();
+  ctx.scene.enter("getAllMyBalance");
+});
+
+bot.action("another", (ctx) => {
+  // ctx.scene.leave();
+  ctx.scene.enter("getCardInfo");
+});
+bot.action("reject", (ctx) => {
+  ctx.session.tranzactionId = null;
+  ctx.reply(
+    ctx.session.language == "uz"
+      ? "Tranzaksiya bekor qilindi"
+      : "Транзакция отменена"
+  );
+});
+
+bot.action("apply", async (ctx) => {
+  try {
+    const regToken = regtoken;
+    const tranzactionId = ctx.session.tranzactionId;
+
+    if (!regToken || !tranzactionId) {
+      await ctx.reply(
+        ctx.session.language == "uz"
+          ? "Tranzaksiya yaratishda muammo yuz berdi, qayta urinib ko'ring!"
+          : "При создании транзакции возникла проблема, попробуйте еще раз!"
+      );
+    } else {
+      const data = JSON.stringify({
+        transaction_id: tranzactionId,
+      });
+      const config = {
+        method: "post",
+        url: "https://api.atmos.uz/out/1.0.0/asl/apply",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${regToken}`,
+        },
+        data: data,
+      };
+
+      const response = await axios.request(config);
+      console.log(JSON.stringify(response.data));
+      const responseData = response.data;
+      // ctx.reply("tolandi");
+      console.log(responseData);
+
+      if (responseData.message != "OK") {
+        // ctx.reply("To`landi lekin Yandexdan ayirilmadi");
+        console.log("To`landi lekin Yandexdan ayirilmadi");
+      } else {
+        const yandexUser = user.driver_profile.id;
+        console.log(yandexData);
+        const driverMiddleName = user.driver_profile.middle_name;
+        const balance = user_balance;
+
+        console.log("BALANS", balance);
+        const url =
+          "https://fleet-api.taxi.yandex.net/v2/parks/driver-profiles/transactions";
+        const clientId = "taxi/park/b756b1c971a64253b201829adcedf3ea";
+        const apiKey = "QCqYmRRKAtzWdhrjqYnRllvsYAFtDYBQh";
+        const cryptoToken = crypto.randomUUID();
+        const idempotencyToken = cryptoToken;
+        // Sizda yetarlicha mablag' yo'q
+        const amountMoney = ctx.session.amountMoney;
+
+        console.log("amountMoney", amountMoney);
+        console.log(Math.trunc(amountMoney), "TRUNC DATA");
+        console.log(`amountMoney: ${amountMoney}`);
+        const cutData = {
+          amount: amountMoney != undefined ? `-${amountMoney}` : `-${balance}`,
+          category_id: "partner_service_manual_6",
+          description: driverMiddleName,
+          driver_profile_id: `${yandexUser}`,
+          park_id: "b756b1c971a64253b201829adcedf3ea",
+        };
+
+        axios
+          .post(url, cutData, {
+            headers: {
+              "X-Client-ID": clientId,
+              "X-API-Key": apiKey,
+              "X-Idempotency-Token": idempotencyToken,
+            },
+          })
+          .then((response) => {
+            console.log("Response:", response.data);
+            // ctx.reply(
+            //   "To'lov muvaffaqiyatli amalga oshirildi Yandex dan ham ayirildi "
+            // );
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            // ctx.reply("Yandex hisobidan ayirishda Xato yuz berdi");
+          });
+        ctx.reply(
+          ctx.session.language == "uz"
+            ? "To'lov muvaffaqiyatli amalga oshirildi"
+            : "Платеж прошел успешно"
+        );
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
 //actions_
 const warningWords = ["/start", "kirish", "aвторизоваться", "/help", "dev"]; // Taqiqlangan so'zlarning ro'yxati
 
