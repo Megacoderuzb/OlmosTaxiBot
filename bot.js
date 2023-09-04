@@ -133,7 +133,22 @@ bot.command("dev", (ctx) => {
 //commands_
 
 //scenes
-
+let ortga = Markup.button.callback("ortga", isUtf8);
+let nazat = Markup.button.callback("назат", isUtf8);
+let ortgabtn = Markup.keyboard([
+  Markup.button.callback("ortga", isUtf8),
+  Markup.button.callback("hidden", isUtf8, true),
+])
+  .oneTime()
+  .resize()
+  .selective();
+let nazatbtn = Markup.keyboard([
+  Markup.button.callback("назат", isUtf8),
+  Markup.button.callback("hidden", isUtf8, true),
+])
+  .oneTime()
+  .resize()
+  .selective();
 const contactData = new Scenes.WizardScene(
   "CONTACT_DATA",
   (ctx) => {
@@ -153,48 +168,69 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   (ctx) => {
-    ctx.message.text === "ortga" ? ctx.scene.leave() : null;
-    ctx.message.text === "ortga" ? null : null;
-    ctx.wizard.state.contactData.lang = ctx.message.text;
-    let rozichilik = Markup.keyboard([
-      Markup.button.text(
-        ctx.wizard.state.contactData.lang == "uz" ? "Ha" : "Да"
-      ),
-      Markup.button.text(
-        ctx.wizard.state.contactData.lang == "uz" ? "Yo'q" : "Нет"
-      ),
-    ])
-      .oneTime()
-      .resize()
-      .selective();
+    console.log(ctx.message?.text);
+    ctx.message?.text === "ortga" ? ctx.scene.leave() : null;
+    ctx.message?.text === "ortga" ? null : null;
+    ctx.wizard.state.contactData.lang = ctx.message?.text;
+    // let rozichilik = Markup.keyboard([
+    //   Markup.button.text(
+    //     ctx.wizard.state.contactData.lang == "uz" ? "Ha" : "Да"
+    //   ),
+    //   Markup.button.text(
+    //     ctx.wizard.state.contactData.lang == "uz" ? "Yo'q" : "Нет"
+    //   ),
+    // ])
+    // .oneTime()
+    // .resize()
+    // .selective();
 
     ctx.reply(
-      "Oferta shartlariga rozimisiz: \n https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link",
-      rozichilik
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Ushbu botdan foydalanishni davom ettirib, siz ommaviy taklif shartlariga rozilik bildirasiz: \n https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link"
+        : "Продолжая ползоваться данным ботом вы соглошаетесь с условиями публичной офёртой:\n https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link",
+      Markup.keyboard([
+        Markup.button.text(
+          ctx.wizard.state.contactData.lang == "uz" ? "Ha" : "Да"
+        ),
+        Markup.button.text(
+          ctx.wizard.state.contactData.lang == "uz" ? "Yo'q" : "Нет"
+        ),
+        ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
+      ])
+        .oneTime()
+        .resize()
+        .selective()
     );
 
     return ctx.wizard.next();
   },
   (ctx) => {
-    ctx.message.text === "ortga"
-      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
         ctx.reply(
           `Assalomu Alaykum Botimizga Xush kelibsiz! Tilni tanlang:\n\nПривет и добро пожаловать в наш бот! Выберите язык:`,
           language
         )
       : null;
     if (ctx.message.text !== "Ha" && ctx.message.text !== "Да") {
-      ctx.reply("Uzur biz siz bilan ishlay olmaymiz!");
+      ctx.reply(
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "Uzur biz siz bilan ishlay olmaymiz!"
+          : "Извините, мы не можем с вами работать!"
+      );
       return;
     }
     ctx.reply(
-      "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Telefon raqamingizni tugmani bosish orqali jo'nating"
+        : "Отправьте свой номер телефона одним нажатием кнопки",
       Markup.keyboard([
         Markup.button.contactRequest(
           ctx.wizard.state.contactData.lang == "uz"
             ? "Telefon raqamingizni yuboring"
             : "Отправьте номер телефона"
         ),
+        ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
       ])
         .oneTime()
         .resize()
@@ -204,10 +240,12 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   async (ctx) => {
-    ctx.message.text === "ortga"
-      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
         ctx.reply(
-          "Oferta shartlariga rozimisiz: \n https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link",
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Ushbu botdan foydalanishni davom ettirib, siz ommaviy taklif shartlariga rozilik bildirasiz: \n https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link"
+            : "Продолжая ползоваться данным ботом вы соглошаетесь с условиями публичной офёртой:\n https://drive.google.com/file/d/1ugnBdSmlYsXyuQ3i-lH1H7rEbBaDtuy0/view?usp=drive_link",
           Markup.keyboard([
             Markup.button.text(
               ctx.wizard.state.contactData.lang == "uz" ? "Ha" : "Да"
@@ -215,6 +253,7 @@ const contactData = new Scenes.WizardScene(
             Markup.button.text(
               ctx.wizard.state.contactData.lang == "uz" ? "Yo'q" : "Нет"
             ),
+            ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
           ])
             .oneTime()
             .resize()
@@ -230,67 +269,95 @@ const contactData = new Scenes.WizardScene(
     const randomNumber = getRandomInt(100000, 999999);
     ctx.wizard.state.contactData.phone = ctx.message?.contact?.phone_number;
     ctx.wizard.state.contactData.code = randomNumber;
-
+    if (!ctx.wizard.state.contactData.phone) {
+      return;
+    }
     console.log(ctx.wizard.state.contactData.phone);
     console.log(ctx.wizard.state.contactData.code);
 
-    // const url =
-    //   "http://api.smsuz.uz/v1/sms/send?token=0b0143b1-f076-44ea-822b-6359c2a0e422";
+    const url =
+      "http://api.smsuz.uz/v1/sms/send?token=0b0143b1-f076-44ea-822b-6359c2a0e422";
 
-    // const data = {
-    //   message: {
-    //     recipients: [`${ctx.wizard.state.contactData.phone}`],
-    //   },
-    //   priority: "default",
-    //   sms: {
-    //     content: `OlmosTaxi uchun tasdiqlash kodi : ${randomNumber}`,
-    //   },
-    // };
+    const data = {
+      message: {
+        recipients: [`${ctx.wizard.state.contactData.phone}`],
+      },
+      priority: "default",
+      sms: {
+        content: `OlmosTaxi uchun tasdiqlash kodi : ${randomNumber}`,
+      },
+    };
 
-    // axios
-    //   .post(url, data)
-    //   .then((response) => {
-    //     console.log(response.data);
-    //     ctx.reply(
-    //       ctx.wizard.state.contactData.lang == "uz"
-    //         ? "Yuborgan telefon raqamingizga kelgan kodni kiriting: "
-    //         : "Введите код, пришедший на отправленный вами номер телефона:",
-    //       keyboard
-    //     );
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //     ctx.reply(
-    //       ctx.wizard.state.contactData.lang == "uz"
-    //         ? `SMS yuborilmadi. Siz ko´p marotaba urindingiz, keyinroq urinib koring `
-    //         : "СМС не отправлено. Вы пытались сделать это слишком много раз, повторите попытку позже.",
-    //       keyboard
-    //     );
-    //   });
+    axios
+      .post(url, data)
+      .then((response) => {
+        console.log(response.data);
+        ctx.reply(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Yuborgan telefon raqamingizga kelgan kodni kiriting: "
+            : "Введите код, пришедший на отправленный вами номер телефона:",
+          ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+        );
+      })
+      .catch((error) => {
+        console.error(error);
+        ctx.reply(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? `SMS yuborilmadi. Siz ko´p marotaba urindingiz, keyinroq urinib koring `
+            : "СМС не отправлено. Вы пытались сделать это слишком много раз, повторите попытку позже.",
+          keyboard
+        );
+      });
 
     // ctx.reply("raqamingizga sms yubordik wuni tasdiqlang");
     return ctx.wizard.next();
   },
   async (ctx) => {
     // validation
-    ctx.message.text === "ortga"
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
       ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
         ctx.reply(
-          "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
-          telKeyboardUz
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Telefon raqamingizni tugmani bosish orqali jo'nating"
+            : "Отправьте свой номер телефона одним нажатием кнопки",
+          Markup.keyboard([
+            Markup.button.contactRequest(
+              ctx.wizard.state.contactData.lang == "uz"
+                ? "Telefon raqamingizni yuboring"
+                : "Отправьте номер телефона"
+            ),
+            ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
+          ])
+            .oneTime()
+            .resize()
+            .selective()
         )
       : null;
-
-    if (ctx.message.text * 1 === NaN) {
-      ctx.reply("faqat raqamlarni kiriting");
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    if (ctx.message.text * 1 == NaN) {
+      ctx.reply(
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "Faqat raqamlarni kiriting"
+          : "Введите только цифры"
+      );
       return;
     }
     if (ctx.message.text.length < 6) {
-      ctx.reply("noto'g'ri raqam");
+      ctx.reply(
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "Noto'g'ri raqam"
+          : "Неправильный номер"
+      );
       return;
     }
     if (ctx.message.text * 1 !== ctx.wizard.state.contactData.code) {
-      ctx.reply("notogri raqam");
+      ctx.reply(
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "Noto'g'ri raqam"
+          : "Неправильный номер"
+      );
       return;
     }
     if (ctx.message.text * 1 === ctx.wizard.state.contactData.code) {
@@ -325,7 +392,7 @@ const contactData = new Scenes.WizardScene(
         // const luqmonovich = "+998990222228";
         // const ahmadjonovich = "+998935206680";
         // const yaroqsizNomer = "+998904024707";
-        const gapborovich = "+998940229020";
+        // const gapborovich = "+998940229020";
 
         async function topish(phoneNumber) {
           //
@@ -340,23 +407,21 @@ const contactData = new Scenes.WizardScene(
               yandexData = resData.driver_profiles[i];
               // console.log(user.driver_profile);
               // const yandexUserId = user.driver_profile.id;
-              // ctx.session.yandexUserId = yandexUserId;
-              // ctx.session.driverFirstName = user.driver_profile.first_name;
-              // ctx.session.driverLastName = user.driver_profile.last_name;
-              // ctx.session.driverMiddleName = user.driver_profile.middle_name;
 
               user_balance =
                 yandexData.accounts[0].balance >= 20000.0
                   ? yandexData.accounts[0].balance - 20000.0
                   : 0;
 
-              // ctx.reply(`${userPhoneNumber}`);
               let myBalance = yandexData.accounts[0].balance;
               console.log(myBalance);
-              // ctx.reply(`Tilni tanlang:\n\nВыберите язык:`);
               found = true;
 
-              ctx.reply("Raqamingiz tasdiqlandi");
+              await ctx.reply(
+                ctx.wizard.state.contactData.lang == "uz"
+                  ? "Raqamingiz tasdiqlandi"
+                  : "Ваш номер подтвержден"
+              );
               // break;
             }
           }
@@ -385,16 +450,10 @@ const contactData = new Scenes.WizardScene(
           }
         }
         // const userPhoneNumber = ctx.session.userPhoneNumber;
-
-        // let dbData = await db
-        //   .collection("Users")
-        //   .find({ phone: userPhoneNumber })
-        //   .toArray();
-        // console.log(dbData, "wu yerdaku");
         console.log(ctx.wizard.state.contactData.phone);
-        // topish(`${ctx.wizard.state.contactData.phone}`);
+        topish(`${ctx.wizard.state.contactData.phone}`);
 
-        topish(gapborovich);
+        // topish(gapborovich);
       } catch (error) {
         console.error(error);
         // Stop
@@ -408,10 +467,21 @@ const contactData = new Scenes.WizardScene(
 
       found
         ? ctx.reply(
-            "passport turi",
+            ctx.wizard.state.contactData.lang == "uz"
+              ? "Pasport turini tanlang"
+              : "Выберите тип паспорта",
             Markup.keyboard([
-              Markup.button.text("id"),
-              Markup.button.text("biometrik"),
+              Markup.button.text(
+                ctx.wizard.state.contactData.lang == "uz"
+                  ? "ID pasport"
+                  : "ID паспорт"
+              ),
+              Markup.button.text(
+                ctx.wizard.state.contactData.lang == "uz"
+                  ? "Biometrik pasport"
+                  : "Биометрический паспорт"
+              ),
+              // ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
             ])
               .oneTime()
               .resize()
@@ -426,11 +496,24 @@ const contactData = new Scenes.WizardScene(
 
   (ctx) => {
     console.log(ctx.message.text, "passportturi");
-    // ctx.message.text === "ortga"
-    //   ? ctx.wizard.selectStep(ctx.wizard.cursor - 2)
+    // ctx.message.text === "ortga" || ctx.message.text === "назат"
+    //   ? ctx.wizard.selectStep(ctx.wizard.cursor - 1)
     //   : null;
-    if (ctx.message.text !== "id" || ctx.message.text !== "biometrik") {
-      ctx.reply("bunaqa variant yoq");
+    //     ? "ID pasport"
+    //     : "ID паспорт"
+    // ? "Biometrik pasport"
+    //     : "Биометрический паспорт"
+    if (
+      ctx.message.text !== "ID pasport" ||
+      ctx.message.text !== "Biometrik pasport" ||
+      ctx.message.text !== "ID паспорт" ||
+      ctx.message.text !== "Биометрический паспорт"
+    ) {
+      ctx.reply(
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "Bunday variant yo'q"
+          : "Нет такого варианта"
+      );
       return;
     }
     ctx.wizard.state.contactData.passtype = ctx.message.text;
@@ -440,15 +523,25 @@ const contactData = new Scenes.WizardScene(
   },
   (ctx) => {
     console.log(ctx.message.text, "passportturi");
-    // ctx.message.text === "ortga"
-    //   ? ctx.wizard.selectStep(ctx.wizard.cursor - 2)
+    // ctx.message.text === "ortga" || ctx.message.text === "назат"
+    //   ? ctx.wizard.selectStep(ctx.wizard.cursor - 1)
     //   : null;
 
     ctx.wizard.state.contactData.passtype = ctx.message.text;
     // let buttons = ;
     ctx.reply(
-      "samozanyatemi",
-      Markup.keyboard([Markup.button.text("ha"), Markup.button.text("yo'q")])
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Siz o'z o'zingizni ish bilan taminlaganmisiz"
+        : "Вы самозаняты",
+      Markup.keyboard([
+        Markup.button.text(
+          ctx.wizard.state.contactData.lang == "uz" ? "Ha" : "Да"
+        ),
+        Markup.button.text(
+          ctx.wizard.state.contactData.lang == "uz" ? "Yo'q" : "Нет"
+        ),
+        ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
+      ])
         .oneTime()
         .resize()
         .selective()
@@ -457,86 +550,227 @@ const contactData = new Scenes.WizardScene(
     return ctx.wizard.next();
   },
   (ctx) => {
-    ctx.message.text === "ortga"
-      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
         ctx.reply(
-          "passport turi",
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Pasport turini tanlang"
+            : "Выберите тип паспорта",
           Markup.keyboard([
-            Markup.button.text("id"),
-            Markup.button.text("biometrik"),
+            Markup.button.text(
+              ctx.wizard.state.contactData.lang == "uz"
+                ? "ID pasport"
+                : "ID паспорт"
+            ),
+            Markup.button.text(
+              ctx.wizard.state.contactData.lang == "uz"
+                ? "Biometrik pasport"
+                : "Биометрический паспорт"
+            ),
+            // ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
           ])
             .oneTime()
             .resize()
             .selective()
         )
       : null;
-    ctx.reply("passport seria raqamini kiriting lotincada");
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    ctx.reply(
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Pasport seria va raqamini kiriting"
+        : "Введите серию и номер паспорта слитно на латинском",
+      ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+    );
     ctx.wizard.state.contactData.samozanyate = ctx.message.text;
     console.log(ctx.message.text, "bu samozanyate");
     return ctx.wizard.next();
   },
   (ctx) => {
-    ctx.message.text === "ortga"
-      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
         ctx.reply(
-          "samozanyatemi",
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Siz o'z o'zingizni ish bilan taminlaganmisiz"
+            : "Вы самозаняты",
           Markup.keyboard([
-            Markup.button.text("ha"),
-            Markup.button.text("yo'q"),
+            Markup.button.text(
+              ctx.wizard.state.contactData.lang == "uz" ? "Ha" : "Да"
+            ),
+            Markup.button.text(
+              ctx.wizard.state.contactData.lang == "uz" ? "Yo'q" : "Нет"
+            ),
+            ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
           ])
             .oneTime()
             .resize()
             .selective()
         )
       : null;
-    ctx.reply("pnflni kirgiz");
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    ctx.reply(
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "PNFL ni kiriting"
+        : "Введите ПНФЛ",
+      ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+    );
     ctx.wizard.state.contactData.passportSeria = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   (ctx) => {
-    ctx.message.text === "ortga"
-      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
-        ctx.reply("passport seria raqamini kiriting lotincada")
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
+        ctx.reply(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Pasport seria va raqamini kiriting"
+            : "Введите серию и номер паспорта слитно на латинском",
+          ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+        )
       : null;
-
-    ctx.reply("tugilgan kuningiz");
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    ctx.reply(
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Tugilgan yilingizni kiriting"
+        : "Введите дату рождения",
+      ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+    );
     ctx.wizard.state.contactData.pnfl = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   (ctx) => {
-    ctx.message.text === "ortga"
-      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
-        ctx.reply("pnflni kirgiz")
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
+        ctx.reply(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "PNFL ni kiriting"
+            : "Введите ПНФЛ",
+          ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+        )
       : null;
-    // if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    // if (ctx.message.text === "ortga" || ctx.message.text === "назат" || ctx.message.text === "назат") {
     //   ctx.scene.leave();
     // }
     // ctx.wizard.back();
     // return;
     // ctx.wizard.back();
-    ctx.reply("passportni rasmini yuklang");
+    ctx.reply(
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Passportni rasmini yuklang. (Rasmni file shaklida yuklamang!!!) 📥"
+        : "Загрузите фото лицевой стороны паспорта. (Hе загружайте фото как файл!!!)📥",
+      ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+    );
     ctx.wizard.state.contactData.birthday = ctx.message.text;
     console.log(ctx.message.text);
     return ctx.wizard.next();
   },
   async (ctx) => {
-    ctx.message.text === "ortga"
-      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
-        ctx.reply("tugilgan kuningiz")
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
+        ctx.reply(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Tugilgan yilingizni kiriting"
+            : "Введите дату рождения",
+          ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+        )
       : null;
-    const photo = ctx.message.photo;
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    const photo = ctx.message?.photo;
     console.log("this is photos", photo);
-
+    if (!photo) {
+      return;
+    }
     console.log(ctx.chat.first_name, ctx.chat.username);
-    let name =
-      ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
+    // ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
     let username = ctx.chat.username ? ctx.chat.username : " ";
+    let fname = ctx.from.first_name;
+    let lname = ctx.from.last_name;
+    let name = fname ? fname : username + " " + lname ? lname : "";
+    // console.log(name, "full_name");
     const media = photo.map((p) => ({
       media: p.file_id,
       type: "photo",
-      caption: `From ${name}: \n @${username} \n Passport`,
+      caption: `Oт ${name}: \n @${username} \n паспорт`,
+    }));
+
+    function filterSameFileIds(data) {
+      const fileIds = {};
+      const filteredData = [];
+
+      for (let item of data) {
+        const fileId = item.file_id;
+
+        if (!fileIds[fileId]) {
+          fileIds[fileId] = true;
+          filteredData.push(item);
+        }
+      }
+
+      return filteredData;
+    }
+    let data = filterSameFileIds(media);
+    console.log("data", data);
+    await ctx.telegram.sendMediaGroup("5033207519", data);
+    if (
+      ctx.wizard.state.contactData.samozanyate == "Ha" ||
+      ctx.wizard.state.contactData.samozanyate == "Да"
+    ) {
+      await ctx.reply(
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "O'z-o'zini ish bilan ta'minlash sertifikatini rasmini yuklang. (Rasmni file shaklida yuklamang!!!)"
+          : "Загрузите фото сертификат самозянотости. (Hе загружайте фото как файл!!!)",
+        ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+      );
+      return ctx.wizard.next();
+    } else {
+      await ctx.reply(
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "Haydovchilik guvohnomasining old qismining fotosuratni yuklang.(Rasmni file shaklida yuklamang!!!)"
+          : "Загрузите фото лицевой части водительских прав. (Hе загружайте фото как файл!!!)",
+        ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+      );
+      return ctx.wizard.selectStep(ctx.wizard.cursor + 1);
+    }
+  },
+  async (ctx) => {
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
+        ctx.reply(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Passportni rasmini yuklang. (Rasmni file shaklida yuklamang!!!) 📥"
+            : "Загрузите фото паспорта. (Hе загружайте фото как файл!!!) 📥",
+          ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+        )
+      : null;
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    const photo = ctx.message?.photo;
+    console.log("this is photos", photo);
+    if (!photo) {
+      return;
+    }
+    console.log(ctx.chat.first_name, ctx.chat.username);
+    let username = ctx.chat.username ? ctx.chat.username : " ";
+    let fname = ctx.from.first_name;
+    let lname = ctx.from.last_name;
+    let name = fname ? fname : username + " " + lname ? lname : "";
+    // let username = ctx.chat.username ? ctx.chat.username : " ";
+    const media = photo.map((p) => ({
+      media: p.file_id,
+      type: "photo",
+      caption: `Oт ${name}: \n @${username} \n сертификат самозянотости`,
     }));
 
     function filterSameFileIds(data) {
@@ -558,15 +792,193 @@ const contactData = new Scenes.WizardScene(
     console.log("data", data);
     await ctx.telegram.sendMediaGroup("5033207519", data);
 
-    await ctx.reply("litsevoy birbalo vaditelskiy rasm tawa");
-
+    await ctx.reply(
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Haydovchilik guvohnomasining old qismining fotosuratni yuklang. (Rasmni file shaklida yuklamang!!!)"
+        : "Загрузите фото лицевой части водительских прав. (Hе загружайте фото как файл!!!)",
+      ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+    );
     return ctx.wizard.next();
   },
 
   async (ctx) => {
-    ctx.message.text === "ortga"
-      ? ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
-        ctx.reply("passportni rasmini yuklang")
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.state.contactData.samozanyate == "Ha" || "Да"
+        ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
+          ctx.reply(
+            ctx.wizard.state.contactData.lang == "uz"
+              ? "O'z-o'zini ish bilan ta'minlash sertifikatini rasmini yuklang. (Rasmni file shaklida yuklamang!!!)"
+              : "Загрузите фото сертификат самозянотости. (Hе загружайте фото как файл!!!)",
+            ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+          )
+        : // ctx.wizard.state.contactData.samozanyate ==  &
+          ctx.wizard.selectStep(ctx.wizard.cursor - 2) &
+          ctx.reply(
+            ctx.wizard.state.contactData.lang == "uz"
+              ? "Passportni rasmini yuklang. (Rasmni file shaklida yuklamang!!!) 📥"
+              : "Загрузите фото паспорта. (Hе загружайте фото как файл!!!)📥",
+            ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+          )
+      : null;
+
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    const photo = ctx.message.photo;
+    console.log("this is photos", photo);
+
+    console.log(ctx.chat.first_name, ctx.chat.username);
+    let username = ctx.chat.username ? ctx.chat.username : " ";
+    let fname = ctx.from.first_name;
+    let lname = ctx.from.last_name;
+    let name = fname ? fname : username + " " + lname ? lname : "";
+    const media = photo.map((p) => ({
+      media: p.file_id,
+      type: "photo",
+      caption: `Oт ${name}: \n @${username} \n лицевой части водительских прав 🪪`,
+    }));
+
+    function filterSameFileIds(data) {
+      const fileIds = {};
+      const filteredData = [];
+
+      for (let item of data) {
+        const fileId = item.file_id;
+
+        if (!fileIds[fileId]) {
+          fileIds[fileId] = true;
+          filteredData.push(item);
+        }
+      }
+
+      return filteredData;
+    }
+    let data = filterSameFileIds(media);
+    console.log("data", data);
+    await ctx.telegram.sendMediaGroup("5033207519", data);
+    await ctx.reply(
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Haydovchilik guvohnomasining orqa qismining fotosuratni yuklang.(Rasmni file shaklida yuklamang!!!) 🪪"
+        : "Загрузите фото обратной части водительских прав. (Hе загружайте фото как файл!!!)🪪"
+    );
+    return ctx.wizard.next();
+  },
+  async (ctx) => {
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? // ? ctx.wizard.state.contactData.samozanyate == "Ha" || "Да"
+        ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
+        ctx.reply(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Haydovchilik guvohnomasining old qismining fotosuratni yuklang. (Rasmni file shaklida yuklamang!!!)"
+            : "Загрузите фото лицевой части водительских прав.(Hе загружайте фото как файл!!!)",
+          ctx.wizard.state.contactData.lang == "uz" ? ortgabtn : nazatbtn
+        )
+      : null;
+    if (ctx.message.text === "ortga" || ctx.message.text === "назат") {
+      return;
+    }
+    const photo = ctx.message.photo;
+    console.log("this is photos", photo);
+
+    let username = ctx.chat.username ? ctx.chat.username : " ";
+    let fname = ctx.from.first_name;
+    let lname = ctx.from.last_name;
+    let name = fname ? fname : username + " " + lname ? lname : "";
+    const media = photo.map((p) => ({
+      media: p.file_id,
+      type: "photo",
+      caption: `Oт ${name}: \n @${username} \n  обратной части водительских прав 🪪`,
+    }));
+
+    function filterSameFileIds(data) {
+      const fileIds = {};
+      const filteredData = [];
+
+      for (let item of data) {
+        const fileId = item.file_id;
+
+        if (!fileIds[fileId]) {
+          fileIds[fileId] = true;
+          filteredData.push(item);
+        }
+      }
+
+      return filteredData;
+    }
+    let data = filterSameFileIds(media);
+    console.log("data", data);
+    await ctx.telegram.sendMediaGroup("5033207519", data);
+    await ctx.reply(
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Barcha malumotlaringiz adminlarga jonatildi📤. Tasdiqlanishini kuting 🧘🏼"
+        : "Вся ваша информация отправлена ​​администраторам📤. Ждите подтверждения 🧘🏼"
+    );
+    let user = ctx.chat.username ? ctx.chat.username : " ";
+    let fname2 = ctx.from.first_name;
+    let lname2 = ctx.from.last_name;
+    let ism = fname2 ? fname2 : username + " " + lname2 ? lname2 : "";
+    console.log(ctx.wizard.state.contactData.passtype);
+    let self_employment =
+      ctx.wizard.state.contactData.samozanyate == "Ha" ? true : false;
+    self_employment =
+      ctx.wizard.state.contactData.samozanyate == "Да" ? true : false;
+    let result = await User.create({
+      full_name: ism,
+      username: user,
+      tg_id: ctx.from.id,
+      phone: ctx.wizard.state.contactData.phone,
+      lang: ctx.wizard.state.contactData.lang,
+      pnfl: ctx.wizard.state.contactData.pnfl,
+      passport_seria: ctx.wizard.state.contactData.passportSeria,
+      self_employment: self_employment,
+    });
+    console.log(result);
+    await ctx.telegram.sendMessage(
+      adminChatId,
+      `Murojatchi: ${ism}, \n Username: ${user} \n Telefon Raqami: ${ctx.wizard.state.contactData.phone} \n Passport Turi: ${ctx.wizard.state.contactData.passtype} \n samozanyate: ${ctx.wizard.state.contactData.samozanyate} \n Passport Seria Raqami: ${ctx.wizard.state.contactData.passportSeria} \n PNFL: ${ctx.wizard.state.contactData.pnfl} \n Tugilgan Sana: ${ctx.wizard.state.contactData.birthday} `,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "✅",
+                callback_data: `approve_${result._id}`,
+              },
+              {
+                text: "❌",
+                callback_data: `cancel_${result._id}`,
+              },
+            ],
+          ],
+        },
+      }
+    );
+    return ctx.scene.leave();
+  }
+);
+contactData.action(
+  "russian",
+  (ctx) => {
+    if (ctx.wizard.state.contactData.lang) {
+      ctx.wizard.state.contactData.lang = "ru";
+      ctx.reply("Язык успешно измененo!✅");
+      return;
+    }
+
+    ctx.wizard.state.contactData.lang = "ru";
+    ctx.reply(
+      "Язык выбран успешно! ✅\nДля регистрации отправьте свой номер с помощью кнопки ниже и подтвердите с помощью смс-уведомления.🤝",
+      telKeyboardRu
+    );
+  },
+  async (ctx) => {
+    ctx.message.text === "ortga" || ctx.message.text === "назат"
+      ? ctx.wizard.selectStep(ctx.wizard.cursor - 1) &
+        ctx.reply(
+          ctx.wizard.state.contactData.lang == "uz"
+            ? "Passportni rasmini yuklang. (Rasmni file shaklida yuklamang!!!) 🖼"
+            : "Загрузите фото паспорта 🖼"
+        )
       : null;
     const photo = ctx.message.photo;
     console.log("this is photos", photo);
@@ -600,7 +1012,9 @@ const contactData = new Scenes.WizardScene(
     console.log("data", data);
     await ctx.telegram.sendMediaGroup("5033207519", data);
     await ctx.reply(
-      "Barcha malumotlaringiz adminlarga jonatildi. Tasdiqlanishini kuting"
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Barcha malumotlaringiz adminlarga jonatildi✈️. Tasdiqlanishini kuting 🧘🏼"
+        : "Вся ваша информация отправлена ​​администраторам✈️. Ждите подтверждения 🧘🏼"
     );
     let ism =
       ctx.chat.first_name + " " + ctx.chat.last_name ? ctx.chat.last_name : "";
@@ -684,10 +1098,12 @@ bot.action(/(approve|cancel)_/, async (ctx) => {
       { new: true }
     );
     console.log(updated);
-    ctx.reply("Tasdiqlandi ✅");
+    ctx.reply("Подтвержденный ✅");
     ctx.telegram.sendMessage(
       updated.tg_id,
-      "Sizning So'rovingiz Tasdiqlandi ✅"
+      updated.lang == "uz"
+        ? "Sizning so'rovingiz tasdiqlandi ✅"
+        : "Ваш запрос потверждён ✅"
     );
 
     // Buttonni tasdiqlash
@@ -698,10 +1114,12 @@ bot.action(/(approve|cancel)_/, async (ctx) => {
       { new: true }
     );
     console.log(deleted);
-    ctx.reply("Bekor qilindi ❌");
+    ctx.reply("Отменено ❌");
     ctx.telegram.sendMessage(
       deleted.tg_id,
-      "Sizning So'rovingiz Bekor qilindi ❌"
+      ctx.wizard.state.contactData.lang == "uz"
+        ? "Sizning so'rovingiz bekor qilindi ❌"
+        : "Ваш запрос отменено ❌"
     );
     // Buttonni bekor qilish
   }
@@ -764,7 +1182,7 @@ const wizardScene = new Scenes.WizardScene(
     const card_buttons = Markup.keyboard([
       ...buttons,
       // Markup.button.text("Yangi karta qo'shish"),
-      Markup.button.text("ortga"),
+      user.lang ? ortga : nazat,
     ])
       .oneTime()
       .resize()
@@ -784,6 +1202,10 @@ const wizardScene = new Scenes.WizardScene(
     if (!ctx.message?.text) {
       return;
     }
+    if (ctx.message.text == "ortga" || ctx.message.text == "назат ") {
+      ctx.reply(user?.lang == "uz" ? "Bekor qilindi" : "Отменено");
+      ctx.scene.leave();
+    }
     ctx.wizard.state.cardInfo.userCardInfo = ctx.message?.text;
     console.log(ctx.wizard.state.cardInfo.userCardInfo);
 
@@ -791,9 +1213,6 @@ const wizardScene = new Scenes.WizardScene(
     const userCardInfo = ctx.wizard.state.cardInfo.userCardInfo;
     const isNumeric = /^\d+$/.test(userCardInfo);
 
-    if (userCardInfo === "/start") {
-    }
-    // /cancel
     if (userCardInfo.length !== 16 || !isNumeric) {
       console.log(userCardInfo);
       delete ctx.wizard.state["cardInfo"]; // clear state to start over again
