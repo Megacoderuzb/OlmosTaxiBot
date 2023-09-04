@@ -1420,6 +1420,11 @@ const CardScene = new Scenes.WizardScene(
     // Stop
   },
   async (ctx) => {
+    if (ctx?.message?.text == "ortga" || ctx?.message?.text == "назат") {
+      ctx.reply(user?.lang == "uz" ? "Bekor qilindi" : "Отменено");
+      ctx.scene.leave();
+      return;
+    }
     ctx.wizard.state.cardInfo = {};
     if (!ctx.message?.text) {
       return;
@@ -1431,22 +1436,6 @@ const CardScene = new Scenes.WizardScene(
     const userCardInfo = ctx.wizard.state.cardInfo.userCardInfo;
     const isNumeric = /^\d+$/.test(userCardInfo);
 
-    if (userCardInfo === "/start") {
-      ctx.scene.leave();
-      // ctx.session = {};
-      return ctx.reply(
-        `Assalomu Alaykum Botimizga Xush kelibsiz! Tilni tanlang:\n\nПривет и добро пожаловать в наш бот! Выберите язык:`,
-        {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: "🇷🇺 Русский язык", callback_data: "russian" }],
-              [{ text: "🇺🇿 O'zbekcha", callback_data: "uzbek" }],
-            ],
-          },
-        }
-      );
-    }
-    // /cancel
     if (userCardInfo.length !== 16 || !isNumeric) {
       console.log(userCardInfo);
       delete ctx.wizard.state["cardInfo"]; // clear state to start over again
@@ -1520,6 +1509,13 @@ const CardScene = new Scenes.WizardScene(
       keyboard
     );
     return ctx.wizard.next();
+  },
+  (ctx) => {
+    if (ctx?.message?.text == "ortga" || ctx?.message?.text == "назат") {
+      ctx.reply(user?.lang == "uz" ? "Bekor qilindi" : "Отменено");
+      ctx.scene.leave();
+      return;
+    }
   }
 );
 
@@ -1557,7 +1553,7 @@ const getAll = new Scenes.WizardScene(
     const card_buttons = Markup.keyboard([
       ...buttons,
       // Markup.button.text("Yangi karta qo'shish"),
-      Markup.button.text("ortga"),
+      Markup.button.text(user?.lang == "uz" ? "ortga" : "назат"),
     ])
       .oneTime()
       .resize()
@@ -1792,24 +1788,24 @@ bot.start(async (ctx) => {
   if (userInDb !== null && userInDb.is_complated) {
     console.log(userInDb.is_complated);
     user = userInDb;
-    ctx.reply("Harakat tanla", {
+    ctx.reply(user?.lang == "uz" ? "Harakatni tanlang" : "Выберите действие", {
       reply_markup: {
         inline_keyboard: [
           [
             {
-              text: "til tanlash",
+              text: user?.lang == "uz" ? "Tilni o'zgartirish" : "Сменить язык",
               callback_data: `lang`,
             },
           ],
           [
             {
-              text: "balance",
+              text: user?.lang == "uz" ? "Balans" : "Мой баланс",
               callback_data: `balance`,
             },
           ],
           [
             {
-              text: "karta",
+              text: user?.lang == "uz" ? "Mening kartalarim" : "Мои карты",
               callback_data: `cards`,
             },
           ],
@@ -2037,8 +2033,10 @@ bot.action("cards", async (ctx) => {
 
   const card_buttons = Markup.keyboard([
     ...buttons,
-    Markup.button.text("Yangi karta qo'shish"),
-    Markup.button.text("ortga"),
+    Markup.button.text(
+      user?.lang == "uz" ? "Yangi karta qo'shish" : "Добавить карту"
+    ),
+    Markup.button.text(user?.lang == "uz" ? "ortga" : "назат"),
   ])
     .oneTime()
     .resize()
@@ -2047,6 +2045,9 @@ bot.action("cards", async (ctx) => {
   ctx.reply("Mening kartalarim", card_buttons);
 });
 bot.hears("Yangi karta qo'shish", (ctx) => {
+  ctx.scene.enter("add_card");
+});
+bot.hears("Добавить карту", (ctx) => {
   ctx.scene.enter("add_card");
 });
 bot.action("getall", (ctx) => {
