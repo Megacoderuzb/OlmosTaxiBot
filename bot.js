@@ -362,132 +362,134 @@ const contactData = new Scenes.WizardScene(
     }
     if (ctx.message.text * 1 === ctx.wizard.state.contactData.code) {
       ///
-      const clientId = "taxi/park/b756b1c971a64253b201829adcedf3ea";
-      const apiKey = "QCqYmRRKAtzWdhrjqYnRllvsYAFtDYBQh";
-      const partnerId = "b756b1c971a64253b201829adcedf3ea";
+      // const clientId = "taxi/park/b756b1c971a64253b201829adcedf3ea";
+      // const apiKey = "QCqYmRRKAtzWdhrjqYnRllvsYAFtDYBQh";
+      // const partnerId = "b756b1c971a64253b201829adcedf3ea";
 
-      const url =
-        "https://fleet-api.taxi.yandex.net/v1/parks/driver-profiles/list";
-      const headers = {
-        "X-Client-ID": clientId,
-        "X-Api-Key": apiKey,
-      };
+      // const url =
+      //   "https://fleet-api.taxi.yandex.net/v1/parks/driver-profiles/list";
+      // const headers = {
+      //   "X-Client-ID": clientId,
+      //   "X-Api-Key": apiKey,
+      // };
 
-      const data = {
-        query: {
-          park: {
-            id: partnerId,
-          },
-        },
-      };
+      // const data = {
+      //   query: {
+      //     park: {
+      //       id: partnerId,
+      //     },
+      //   },
+      // };
 
-      let found = false;
-      try {
-        const response = await axios.post(url, data, { headers });
-        const resData = response.data;
-        // console.log(resData);
+      // let found = false;
+      // try {
+      //   const response = await axios.post(url, data, { headers });
+      //   const resData = response.data;
+      //   // console.log(resData);
 
-        // ctx.reply("Malumotlar keldi");
+      //   // ctx.reply("Malumotlar keldi");
 
-        // const luqmonovich = "+998990222228";
-        // const ahmadjonovich = "+998935206680";
-        // const yaroqsizNomer = "+998904024707";
-        // const gapborovich = "+998940229020";
+      //   // const luqmonovich = "+998990222228";
+      //   // const ahmadjonovich = "+998935206680";
+      //   // const yaroqsizNomer = "+998904024707";
+      //   // const gapborovich = "+998940229020";
 
-        async function topish(phoneNumber) {
-          //
+      //   async function topish(phoneNumber) {
+      //     //
 
-          //
-          for (let i = 0; i < resData.driver_profiles.length; i++) {
-            if (
-              resData.driver_profiles[i].driver_profile.phones.includes(
-                phoneNumber
-              )
-            ) {
-              yandexData = resData.driver_profiles[i];
-              // console.log(user.driver_profile);
-              // const yandexUserId = user.driver_profile.id;
+      //     //
+      //     for (let i = 0; i < resData.driver_profiles.length; i++) {
+      //       if (
+      //         resData.driver_profiles[i].driver_profile.phones.includes(
+      //           phoneNumber
+      //         )
+      //       ) {
+      //         yandexData = resData.driver_profiles[i];
+      //         // console.log(user.driver_profile);
+      //         // const yandexUserId = user.driver_profile.id;
 
-              user_balance =
-                yandexData.accounts[0].balance >= 20000.0
-                  ? yandexData.accounts[0].balance - 20000.0
-                  : 0;
+      //         user_balance =
+      //           yandexData.accounts[0].balance >= 20000.0
+      //             ? yandexData.accounts[0].balance - 20000.0
+      //             : 0;
 
-              let myBalance = yandexData.accounts[0].balance;
-              console.log(myBalance);
-              found = true;
+      //         let myBalance = yandexData.accounts[0].balance;
+      //         console.log(myBalance);
+      //         found = true;
 
-              await ctx.reply(
-                ctx.wizard.state.contactData.lang == "uz"
-                  ? "Raqamingiz tasdiqlandi"
-                  : "Ваш номер подтвержден"
-              );
-              // break;
-            }
-          }
-          if (!found) {
-            // ctx.reply(`+${userPhoneNumber}`);
-            ctx.wizard.selectStep(ctx.wizard.cursor - 3);
-            // ctx.reply(
-            //   "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
-            //   telKeyboardUz
-            // );
-            return ctx.reply(
-              ctx.wizard.state.contactData.lang == "uz"
-                ? "Bunday foydalanuvchi topilmadi 🤷🏼‍♂️, qaytadan urinib ko'ring 🔄"
-                : "Пользователь не найден 🤷🏼‍♂️, попробуйте еще раз 🔄",
-              Markup.keyboard([
-                Markup.button.contactRequest(
-                  ctx.wizard.state.contactData.lang == "uz"
-                    ? "Telefon raqamingizni yuboring"
-                    : "Отправьте номер телефона"
-                ),
-              ])
-                .oneTime()
-                .resize()
-                .selective()
-            );
-          }
-        }
-        // const userPhoneNumber = ctx.session.userPhoneNumber;
-        console.log(ctx.wizard.state.contactData.phone);
-        topish(`${ctx.wizard.state.contactData.phone}`);
+      await ctx.reply(
+        "Raqamingiz tasdiqlandi"
+        //           ctx.wizard.state.contactData.lang == "uz"
+        //             ?
+        //             : "Ваш номер подтвержден"
+      );
+      //         // break;
+      //       }
+      //     }
+      //     if (!found) {
+      //       // ctx.reply(`+${userPhoneNumber}`);
+      //       ctx.wizard.selectStep(ctx.wizard.cursor - 3);
+      //       // ctx.reply(
+      //       //   "Royhatdan o'tishni davom ettirish uchun pastdagi tugma orqali raqamingizni jonating",
+      //       //   telKeyboardUz
+      //       // );
+      //       return ctx.reply(
+      //         ctx.wizard.state.contactData.lang == "uz"
+      //           ? "Bunday foydalanuvchi topilmadi 🤷🏼‍♂️, qaytadan urinib ko'ring 🔄"
+      //           : "Пользователь не найден 🤷🏼‍♂️, попробуйте еще раз 🔄",
+      //         Markup.keyboard([
+      //           Markup.button.contactRequest(
+      //             ctx.wizard.state.contactData.lang == "uz"
+      //               ? "Telefon raqamingizni yuboring"
+      //               : "Отправьте номер телефона"
+      //           ),
+      //         ])
+      //           .oneTime()
+      //           .resize()
+      //           .selective()
+      //       );
+      //     }
+      //   }
+      // const userPhoneNumber = ctx.session.userPhoneNumber;
+      // console.log(ctx.wizard.state.contactData.phone);
+      // topish(`${ctx.wizard.state.contactData.phone}`);
 
-        // topish(gapborovich);
-      } catch (error) {
-        console.error(error);
-        // Stop
-        ctx.reply(
-          ctx.wizard.state.contactData.lang == "uz"
-            ? "Xatolik yuz berdi: " + error.message
-            : "Произошла ошибка: " + error.message
-        );
-      }
+      // topish(gapborovich);
+      // } catch (error) {
+      //   console.error(error);
+      //   // Stop
+      //   ctx.reply(
+      //     ctx.wizard.state.contactData.lang == "uz"
+      //       ? "Xatolik yuz berdi: " + error.message
+      //       : "Произошла ошибка: " + error.message
+      //   );
+      // }
       ///
 
-      found
-        ? ctx.reply(
+      // found
+      //   ?
+      ctx.reply(
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "Pasport turini tanlang"
+          : "Выберите тип паспорта",
+        Markup.keyboard([
+          Markup.button.text(
             ctx.wizard.state.contactData.lang == "uz"
-              ? "Pasport turini tanlang"
-              : "Выберите тип паспорта",
-            Markup.keyboard([
-              Markup.button.text(
-                ctx.wizard.state.contactData.lang == "uz"
-                  ? "ID pasport"
-                  : "ID паспорт"
-              ),
-              Markup.button.text(
-                ctx.wizard.state.contactData.lang == "uz"
-                  ? "Biometrik pasport"
-                  : "Биометрический паспорт"
-              ),
-              // ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
-            ])
-              .oneTime()
-              .resize()
-              .selective()
-          )
-        : null;
+              ? "ID pasport"
+              : "ID паспорт"
+          ),
+          Markup.button.text(
+            ctx.wizard.state.contactData.lang == "uz"
+              ? "Biometrik pasport"
+              : "Биометрический паспорт"
+          ),
+          // ctx.wizard.state.contactData.lang == "uz" ? ortga : nazat,
+        ])
+          .oneTime()
+          .resize()
+          .selective()
+      );
+      // : null;
 
       ctx.wizard.next();
     }
