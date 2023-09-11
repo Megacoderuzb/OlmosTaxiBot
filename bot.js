@@ -29,7 +29,7 @@ async function usersFind(phone) {
 async function addcard(tg_id, numbers) {
   let card = await Card.create({ tg_id, numbers });
 }
-// addcard(5033207519, 7777777777777777);
+// addcard(5228882456, 7777777777777777);
 //db connection_
 
 // variables
@@ -37,7 +37,7 @@ let user;
 let yandexData;
 let user_balance;
 let myBalance;
-const adminChatId = "5033207519";
+const adminChatId = "5228882456";
 // console.log(process.env.BOT_TOKEN);
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -418,10 +418,9 @@ const contactData = new Scenes.WizardScene(
       //         found = true;
 
       await ctx.reply(
-        "Raqamingiz tasdiqlandi"
-        //           ctx.wizard.state.contactData.lang == "uz"
-        //             ?
-        //             : "Ваш номер подтвержден"
+        ctx.wizard.state.contactData.lang == "uz"
+          ? "Raqamingiz tasdiqlandi"
+          : "Ваш номер подтвержден"
       );
       //         // break;
       //       }
@@ -498,13 +497,7 @@ const contactData = new Scenes.WizardScene(
 
   (ctx) => {
     console.log(ctx.message.text, "passportturi");
-    // ctx.message.text === "ortga" || ctx.message.text === "назат"
-    //   ? ctx.wizard.selectStep(ctx.wizard.cursor - 1)
-    //   : null;
-    //     ? "ID pasport"
-    //     : "ID паспорт"
-    // ? "Biometrik pasport"
-    //     : "Биометрический паспорт"
+
     if (
       ctx.message.text !== "ID pasport" ||
       ctx.message.text !== "Biometrik pasport" ||
@@ -723,7 +716,7 @@ const contactData = new Scenes.WizardScene(
     }
     let data = filterSameFileIds(media);
     console.log("data", data);
-    await ctx.telegram.sendMediaGroup("5033207519", data);
+    await ctx.telegram.sendMediaGroup("5228882456", data);
     if (
       ctx.wizard.state.contactData.samozanyate == "Ha" ||
       ctx.wizard.state.contactData.samozanyate == "Да"
@@ -792,7 +785,7 @@ const contactData = new Scenes.WizardScene(
     }
     let data = filterSameFileIds(media);
     console.log("data", data);
-    await ctx.telegram.sendMediaGroup("5033207519", data);
+    await ctx.telegram.sendMediaGroup("5228882456", data);
 
     await ctx.reply(
       ctx.wizard.state.contactData.lang == "uz"
@@ -857,7 +850,7 @@ const contactData = new Scenes.WizardScene(
     }
     let data = filterSameFileIds(media);
     console.log("data", data);
-    await ctx.telegram.sendMediaGroup("5033207519", data);
+    await ctx.telegram.sendMediaGroup("5228882456", data);
     await ctx.reply(
       ctx.wizard.state.contactData.lang == "uz"
         ? "Haydovchilik guvohnomasining orqa qismining fotosuratni yuklang.(Rasmni file shaklida yuklamang!!!) 🪪"
@@ -909,7 +902,7 @@ const contactData = new Scenes.WizardScene(
     }
     let data = filterSameFileIds(media);
     console.log("data", data);
-    await ctx.telegram.sendMediaGroup("5033207519", data);
+    await ctx.telegram.sendMediaGroup("5228882456", data);
     await ctx.reply(
       ctx.wizard.state.contactData.lang == "uz"
         ? "Barcha malumotlaringiz adminlarga jonatildi📤. Tasdiqlanishini kuting 🧘🏼"
@@ -937,7 +930,7 @@ const contactData = new Scenes.WizardScene(
     console.log(result);
     await ctx.telegram.sendMessage(
       adminChatId,
-      `Murojatchi: ${ism}, \n Username: ${user} \n Telefon Raqami: ${ctx.wizard.state.contactData.phone} \n Passport Turi: ${ctx.wizard.state.contactData.passtype} \n samozanyate: ${ctx.wizard.state.contactData.samozanyate} \n Passport Seria Raqami: ${ctx.wizard.state.contactData.passportSeria} \n PNFL: ${ctx.wizard.state.contactData.pnfl} \n Tugilgan Sana: ${ctx.wizard.state.contactData.birthday} `,
+      `Заявитель: ${ism}, \n Имя пользователя: @${user} \n Номер телефона: ${ctx.wizard.state.contactData.phone} \n Тип паспорта: ${ctx.wizard.state.contactData.passtype} \n Наличие серт. самозанятости: ${ctx.wizard.state.contactData.samozanyate} \n Серия и номер паспорта: ${ctx.wizard.state.contactData.passportSeria} \n ПНФЛ: ${ctx.wizard.state.contactData.pnfl} \n Год рождения: ${ctx.wizard.state.contactData.birthday} `,
       {
         reply_markup: {
           inline_keyboard: [
@@ -1012,7 +1005,7 @@ contactData.action(
     }
     let data = filterSameFileIds(media);
     console.log("data", data);
-    await ctx.telegram.sendMediaGroup("5033207519", data);
+    await ctx.telegram.sendMediaGroup("5228882456", data);
     await ctx.reply(
       ctx.wizard.state.contactData.lang == "uz"
         ? "Barcha malumotlaringiz adminlarga jonatildi✈️. Tasdiqlanishini kuting 🧘🏼"
